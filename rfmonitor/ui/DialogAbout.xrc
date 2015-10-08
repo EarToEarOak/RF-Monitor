@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxDialog" name="DialogAbout">
+		<style>wxDEFAULT_DIALOG_STYLE</style>
+		<title>About</title>
+		<centered>1</centered>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_CENTER|wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="text1">
+					<label>RF Monitor</label>
+					<wrap>-1</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_CENTER|wxALL</flag>
+				<border>5</border>
+				<object class="wxStaticText" name="text2">
+					<label>Copyright 2015 Al Brown</label>
+					<wrap>-1</wrap>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_CENTER|wxALL</flag>
+				<border>5</border>
+				<object class="wxHyperlinkCtrl" name="link1">
+					<label>www.EarToEarOak.com</label>
+					<url>http://eartoearoak.com</url>
+					<style>wxHL_DEFAULT_STYLE</style>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_CENTER|wxALL</flag>
+				<border>5</border>
+				<object class="wxButton" name="buttonOk">
+					<label>OK</label>
+					<default>0</default>
+				</object>
+			</object>
+		</object>
+	</object>
+</resource>

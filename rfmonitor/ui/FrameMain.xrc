@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxFrame" name="FrameMain">
+		<style>wxDEFAULT_FRAME_STYLE|wxTAB_TRAVERSAL</style>
+		<size>500,300</size>
+		<title></title>
+		<centered>1</centered>
+		<aui_managed>0</aui_managed>
+		<object class="wxStatusBar" name="statusBar">
+			<style>wxST_SIZEGRIP</style>
+			<fields>1</fields>
+		</object>
+		<object class="wxMenuBar" name="menuBar">
+			<label>MyMenuBar</label>
+			<object class="wxMenu" name="menuFile">
+				<label>File</label>
+				<object class="wxMenuItem" name="menuClear">
+					<label>Clear all recordings...</label>
+					<help></help>
+				</object>
+				<object class="separator" />
+				<object class="wxMenuItem" name="menuClose">
+					<label>Close</label>
+					<help></help>
+				</object>
+			</object>
+			<object class="wxMenu" name="menuView">
+				<label>View</label>
+				<object class="wxMenuItem" name="menuSpectrum">
+					<label>Spectrum</label>
+					<help></help>
+					<checkable>1</checkable>
+				</object>
+			</object>
+			<object class="wxMenu" name="menuHelp">
+				<label>Help</label>
+				<object class="wxMenuItem" name="menuAbout">
+					<label>About</label>
+					<help></help>
+				</object>
+			</object>
+		</object>
+		<object class="wxBoxSizer">
+			<minsize>-1,250</minsize>
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND | wxALL</flag>
+				<border>5</border>
+				<object class="wxScrolledWindow" name="window">
+					<style>wxHSCROLL|wxVSCROLL</style>
+					<scrollrate>1,1</scrollrate>
+					<object class="wxBoxSizer">
+						<minsize>1,1</minsize>
+						<orient>wxVERTICAL</orient>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALL|wxEXPAND</flag>
+				<border>0</border>
+				<object class="PanelToolbar" name="toolBar" />
+			</object>
+		</object>
+	</object>
+</resource>

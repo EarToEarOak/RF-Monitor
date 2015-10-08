@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+	<object class="wxDialog" name="DialogSpectrum">
+		<style>wxDEFAULT_DIALOG_STYLE|wxDIALOG_NO_PARENT|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxRESIZE_BORDER</style>
+		<title>Spectrum</title>
+		<centered>1</centered>
+		<object class="wxBoxSizer">
+			<orient>wxVERTICAL</orient>
+			<object class="sizeritem">
+				<option>1</option>
+				<flag>wxEXPAND | wxALL</flag>
+				<border>5</border>
+				<object class="wxPanel" name="panelPlot">
+					<style>wxTAB_TRAVERSAL</style>
+					<object class="wxBoxSizer">
+						<minsize>300,200</minsize>
+						<orient>wxVERTICAL</orient>
+					</object>
+				</object>
+			</object>
+			<object class="sizeritem">
+				<option>0</option>
+				<flag>wxALIGN_RIGHT|wxALL</flag>
+				<border>5</border>
+				<object class="wxButton" name="buttonClose">
+					<label>Close</label>
+					<default>0</default>
+				</object>
+			</object>
+		</object>
+	</object>
+</resource>

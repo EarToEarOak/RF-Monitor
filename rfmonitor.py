@@ -37,7 +37,4 @@ if __name__ == '__main__':
     wx.Locale().Init2()
     frame = FrameMain(APP_NAME)
 
-#    import wx.lib.inspection
-#    wx.lib.inspection.InspectionTool().Show()
-
     app.MainLoop()

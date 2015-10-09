@@ -34,6 +34,7 @@ import wx
 from constants import BINS, SAMPLE_RATE, LEVEL_MIN
 from dialog_about import DialogAbout
 from dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
+from dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
 from file import save_recordings, load_recordings
 from panel_monitor import PanelMonitor
 from panel_toolbar import XrcHandlerToolbar
@@ -59,6 +60,7 @@ class FrameMain(wx.Frame):
         self._settings = Settings()
         self._filename = None
         self._receive = None
+        self._dialogTimeline = None
         self._dialogSpectrum = None
 
         self._ui = load_ui('FrameMain.xrc')
@@ -106,6 +108,9 @@ class FrameMain(wx.Frame):
         idClear = xrc.XRCID('menuClear')
         self._menuClear = self._menu.FindItemById(idClear)
         self._frame.Bind(wx.EVT_MENU, self.__on_clear, id=idClear)
+        idTimeline = xrc.XRCID('menuTimeline')
+        self._frame.Bind(wx.EVT_MENU, self.__on_timeline, id=idTimeline)
+        self._menuTimeline = self._menu.FindItemById(idTimeline)
         idSpectrum = xrc.XRCID('menuSpectrum')
         self._frame.Bind(wx.EVT_MENU, self.__on_spectrum, id=idSpectrum)
         self._menuSpectrum = self._menu.FindItemById(idSpectrum)
@@ -115,6 +120,7 @@ class FrameMain(wx.Frame):
         idAbout = xrc.XRCID('menuAbout')
         self._frame.Bind(wx.EVT_MENU, self.__on_about, id=idAbout)
 
+        self._frame.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
         self._frame.Bind(EVT_SPECTRUM_CLOSE, self.__on_spectrum_close)
         self._frame.Bind(EVT_SCAN_ERROR, self.__on_scan_error)
         self._frame.Bind(EVT_SCAN_DATA, self.__on_scan_data)
@@ -155,6 +161,11 @@ class FrameMain(wx.Frame):
 
         self._monitors = []
 
+    def __get_signals(self):
+        return [(monitor.get_freq(),
+                 monitor.get_signals())
+                for monitor in self._monitors]
+
     def __is_saved(self):
         for monitor in self._monitors:
             if not monitor.get_saved():
@@ -172,9 +183,6 @@ class FrameMain(wx.Frame):
         self._freqs = freqs.tolist()
 
     def __on_start(self):
-        if not self.__save_warning():
-                return
-
         self._menuOpen.Enable(False)
         self._menuSave.Enable(False)
         self._menuSaveAs.Enable(False)
@@ -245,6 +253,9 @@ class FrameMain(wx.Frame):
         self.__clear_monitors()
         self.__add_monitors()
 
+        if self._dialogTimeline is not None:
+            self._dialogTimeline.set_signals(self.__get_signals())
+
     def __on_save(self, _event):
         self.__save(False)
 
@@ -259,6 +270,19 @@ class FrameMain(wx.Frame):
 
         for monitor in self._monitors:
             monitor.clear_signals()
+
+    def __on_timeline(self, event):
+        if event.IsChecked() and self._dialogTimeline is None:
+            self._dialogTimeline = DialogTimeline(self._frame)
+            self._dialogTimeline.set_signals(self.__get_signals())
+            self._dialogTimeline.Show()
+        elif self._dialogTimeline is not None:
+            self._dialogTimeline.Destroy()
+            self._dialogTimeline = None
+
+    def __on_timeline_close(self, _event):
+        self._menuTimeline.Check(False)
+        self._dialogTimeline = None
 
     def __on_spectrum(self, event):
         if event.IsChecked() and self._dialogSpectrum is None:
@@ -299,11 +323,15 @@ class FrameMain(wx.Frame):
         self._levels += levels
         self._levels /= 2.
 
+        updated = False
         for monitor in self._monitors:
             freq = monitor.get_freq()
             if monitor.is_enabled():
                 index = numpy.where(freq == event.f)[0]
-                monitor.set_level(levels[index], event.timestamp)
+                updated |= monitor.set_level(levels[index], event.timestamp)
+
+        if self._dialogTimeline is not None and updated:
+            self._dialogTimeline.set_signals(self.__get_signals())
 
         if self._dialogSpectrum is not None:
             self._dialogSpectrum.set_spectrum(self._freqs,
@@ -343,7 +371,7 @@ class FrameMain(wx.Frame):
 
     def __save_warning(self):
         if not self.__is_saved():
-            resp = wx.MessageBox('Data is not saved, quit?', 'Warning',
+            resp = wx.MessageBox('Data is not saved, continue?', 'Warning',
                                  wx.OK | wx.CANCEL | wx.ICON_WARNING)
             if resp != wx.OK:
                 return False

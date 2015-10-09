@@ -44,6 +44,11 @@
                     <help></help>
                     <checkable>1</checkable>
                 </object>
+                <object class="wxMenuItem" name="menuTimeline">
+                    <label>Timeline</label>
+                    <help></help>
+                    <checkable>1</checkable>
+                </object>
             </object>
             <object class="wxMenu" name="menuHelp">
                 <label>Help</label>

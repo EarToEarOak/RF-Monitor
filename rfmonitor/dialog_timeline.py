@@ -23,37 +23,41 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import datetime
 import time
 
 import matplotlib
 matplotlib.use('WXAgg')
 
+from matplotlib.dates import epoch2num, num2epoch, AutoDateLocator, \
+    AutoDateFormatter
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.ticker import ScalarFormatter, AutoMinorLocator
 from wx import xrc
 import wx.lib.newevent
 
-from constants import MAX_SPECTRUM_FPS
+from constants import MAX_TIMELINE_FPS, BINS, SAMPLE_RATE
 from ui import load_ui
 
-EventSpectrumClose, EVT_SPECTRUM_CLOSE = wx.lib.newevent.NewEvent()
+
+EventTimelineClose, EVT_TIMELINE_CLOSE = wx.lib.newevent.NewEvent()
 
 
-class DialogSpectrum(wx.Dialog):
+class DialogTimeline(wx.Dialog):
     def __init__(self, parent):
         self._parent = parent
-        self._spectrum = None
         self._toolbar = None
         self._textFreq = None
         self._timestamp = 0
-        self._delayDraw = 1. / MAX_SPECTRUM_FPS
+        self._delayDraw = 1. / MAX_TIMELINE_FPS
         self._axes = None
         self._canvas = None
 
         pre = wx.PreDialog()
-        self._ui = load_ui('DialogSpectrum.xrc')
-        self._ui.LoadOnDialog(pre, parent, 'DialogSpectrum')
+        self._ui = load_ui('DialogTimeline.xrc')
+        self._ui.LoadOnDialog(pre, parent, 'DialogTimeline')
         self.PostCreate(pre)
 
         self._panelPlot = xrc.XRCCTRL(pre, 'panelPlot')
@@ -74,12 +78,18 @@ class DialogSpectrum(wx.Dialog):
         figure = Figure()
 
         self._axes = figure.add_subplot(111)
-        self._axes.set_title('Spectrum')
-        self._axes.set_xlabel('Frequency (MHz)')
-        self._axes.set_ylabel('Level (dB)')
-        self._axes.autoscale_view(True, True, True)
+        self._axes.set_title('Timeline')
+        self._axes.set_xlabel('Time')
+        self._axes.set_ylabel('Frequency (MHz)')
+        self._axes.autoscale(True)
         self._axes.grid(True)
-        self._spectrum, = self._axes.plot([], [], 'b-')
+        locator = AutoDateLocator()
+        formatter = AutoDateFormatter(locator)
+        self._axes.xaxis.set_major_formatter(formatter)
+        self._axes.xaxis.set_major_locator(locator)
+        formatter = ScalarFormatter(useOffset=False)
+        self._axes.yaxis.set_major_formatter(formatter)
+        self._axes.yaxis.set_minor_locator(AutoMinorLocator(10))
 
         self._canvas = FigureCanvas(self._panelPlot, -1, figure)
         self._canvas.mpl_connect('motion_notify_event', self.__on_motion)
@@ -91,7 +101,7 @@ class DialogSpectrum(wx.Dialog):
             self._toolbar.AddStretchableSpace()
         else:
             self._toolbar.AddSeparator()
-        self._textFreq = wx.StaticText(self._toolbar, label='          ')
+        self._textFreq = wx.StaticText(self._toolbar, label='                ')
         font = self._textFreq.GetFont()
         font.SetFamily(wx.FONTFAMILY_MODERN)
         self._textFreq.SetFont(font)
@@ -100,34 +110,54 @@ class DialogSpectrum(wx.Dialog):
 
     def __on_motion(self, event):
         label = ''
-        if event.xdata is not None:
-            label = '{: 8.4f}MHz'.format(event.xdata)
+        if event.xdata is not None and event.xdata >= 1:
+            timestamp = num2epoch(event.xdata)
+            label = datetime.datetime.fromtimestamp(timestamp).strftime('%c')
         self._textFreq.SetLabel(label)
 
     def __on_close(self, _event):
-        evt = EventSpectrumClose()
+        evt = EventTimelineClose()
         wx.PostEvent(self._parent, evt)
         self.Destroy()
 
-    def set_spectrum(self, freqs, levels, timestamp):
+    def __clear_plots(self):
+        for child in self._axes.get_children():
+            gid = child.get_gid()
+            if gid is not None and gid == 'plot':
+                child.remove()
+
+    def set_signals(self, allSignals):
+        timestamp = time.time()
         if timestamp - self._timestamp > self._delayDraw:
             t1 = time.time()
             self._timestamp = timestamp
-            self._spectrum.set_data(freqs, levels)
-            self._axes.relim()
-            self._axes.autoscale_view(True, True, True)
 
+            height = SAMPLE_RATE / BINS
+            height /= 1e6
+            self._axes.set_color_cycle(None)
+
+            self.__clear_plots()
+            for freq, signals in allSignals:
+                barsX = []
+                for start, end in signals:
+                    tStart = epoch2num(start)
+                    tEnd = epoch2num(end)
+                    barsX.append([tStart, tEnd - tStart])
+                colour = self._axes._get_lines.color_cycle.next()
+                self._axes.broken_barh(barsX, [freq - height / 2, height],
+                                       color=colour,
+                                       gid='plot')
+                self._axes.axhspan(freq, freq, color=colour)
+
+            self._axes.get_figure().autofmt_xdate()
+            self._axes.relim()
             self._canvas.draw()
+
             delay = time.time() - t1
             self._delayDraw += delay * 2.
             self._delayDraw /= 2.
-            if self._delayDraw < 1. / MAX_SPECTRUM_FPS:
-                self._delayDraw = 1. / MAX_SPECTRUM_FPS
-
-    def clear_spectrum(self):
-        self._spectrum.set_data([], [])
-
-        self._canvas.draw()
+            if self._delayDraw < 1. / MAX_TIMELINE_FPS:
+                self._delayDraw = 1. / MAX_TIMELINE_FPS
 
 
 if __name__ == '__main__':

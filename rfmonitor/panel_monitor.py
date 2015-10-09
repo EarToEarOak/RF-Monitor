@@ -148,6 +148,8 @@ class PanelMonitor(wx.Panel):
                     self._timestamp = None
                     self._isSaved = False
                     self.__set_signals()
+                    return True
+        return False
 
     def set_recording(self, isRecording):
         self._isRecording = isRecording

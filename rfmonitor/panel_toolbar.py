@@ -72,6 +72,7 @@ class PanelToolbar(wx.Panel):
         self._on_start()
 
     def __on_rec(self, _event):
+        self.enable_start(False)
         recording = self._buttonRec.GetValue()
         self._on_rec(recording)
 

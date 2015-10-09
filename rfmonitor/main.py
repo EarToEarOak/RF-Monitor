@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+
 from matplotlib.mlab import psd
 import numpy
 from rtlsdr.rtlsdr import RtlSdr
@@ -32,6 +34,7 @@ import wx
 from constants import BINS, SAMPLE_RATE, LEVEL_MIN
 from dialog_about import DialogAbout
 from dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
+from file import save_recordings, load_recordings
 from panel_monitor import PanelMonitor
 from panel_toolbar import XrcHandlerToolbar
 from receive import Receive, EVT_SCAN_ERROR, EVT_SCAN_DATA
@@ -54,6 +57,7 @@ class FrameMain(wx.Frame):
         self._freqs = []
         self._levels = numpy.zeros(BINS, dtype=numpy.float32)
         self._settings = Settings()
+        self._filename = None
         self._receive = None
         self._dialogSpectrum = None
 
@@ -89,7 +93,18 @@ class FrameMain(wx.Frame):
         self.__add_monitors()
 
         self._menu = self._frame.GetMenuBar()
+
+        idOpen = xrc.XRCID('menuOpen')
+        self._menuOpen = self._menu.FindItemById(idOpen)
+        self._frame.Bind(wx.EVT_MENU, self.__on_open, id=idOpen)
+        idSave = xrc.XRCID('menuSave')
+        self._menuSave = self._menu.FindItemById(idSave)
+        self._frame.Bind(wx.EVT_MENU, self.__on_save, id=idSave)
+        idSaveAs = xrc.XRCID('menuSaveAs')
+        self._menuSaveAs = self._menu.FindItemById(idSaveAs)
+        self._frame.Bind(wx.EVT_MENU, self.__on_save_as, id=idSaveAs)
         idClear = xrc.XRCID('menuClear')
+        self._menuClear = self._menu.FindItemById(idClear)
         self._frame.Bind(wx.EVT_MENU, self.__on_clear, id=idClear)
         idSpectrum = xrc.XRCID('menuSpectrum')
         self._frame.Bind(wx.EVT_MENU, self.__on_spectrum, id=idSpectrum)
@@ -130,12 +145,21 @@ class FrameMain(wx.Frame):
         self._monitors.append(monitor)
         self._sizerWindow.Add(monitor, 0, wx.ALL | wx.EXPAND, 5)
 
-    def __has_signals(self):
-        for monitor in self._monitors:
-            if len(monitor.get_signals()):
-                return True
+    def __clear_monitors(self):
+        for _i in range(len(self._monitors)):
+            self._sizerWindow.Hide(0)
+            self._sizerWindow.Remove(0)
 
-        return False
+        self._frame.Layout()
+
+        self._monitors = []
+
+    def __is_saved(self):
+        for monitor in self._monitors:
+            if not monitor.get_saved():
+                return False
+
+        return True
 
     def __on_freq(self, freq):
         for _i in range(len(self._monitors)):
@@ -152,6 +176,13 @@ class FrameMain(wx.Frame):
         self._freqs = freqs.tolist()
 
     def __on_start(self):
+        if not self.__save_warning():
+                return
+
+        self._menuOpen.Enable(False)
+        self._menuSave.Enable(False)
+        self._menuSaveAs.Enable(False)
+        self._menuClear.Enable(False)
         self._menuClose.Enable(False)
         if self._receive is None:
             self._receive = Receive(self._frame,
@@ -166,6 +197,10 @@ class FrameMain(wx.Frame):
             monitor.set_recording(recording)
 
     def __on_stop(self):
+        self._menuOpen.Enable(True)
+        self._menuSave.Enable(True)
+        self._menuSaveAs.Enable(True)
+        self._menuClear.Enable(True)
         self._menuClose.Enable(True)
         if self._receive is not None:
             self._receive.stop()
@@ -191,28 +226,29 @@ class FrameMain(wx.Frame):
 
         self._monitors.remove(monitor)
 
-    def __on_scan_error(self, event):
-        wx.MessageBox(event.msg,
-                      'Error', wx.OK | wx.ICON_ERROR)
-        self._toolbar.enable_start(True)
+    def __on_open(self, _event):
+        if not self.__save_warning():
+                return
 
-    def __on_scan_data(self, event):
-        levels = numpy.log10(event.l)
-        levels *= 10
+        dlg = wx.FileDialog(self._frame,
+                            'Open File', '', '',
+                            'rfmon files (*.rfmon)|*.rfmon',
+                            wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        if dlg.ShowModal() == wx.ID_CANCEL:
+            return
 
-        self._levels += levels
-        self._levels /= 2.
+        load_recordings(dlg.GetPath(),
+                        self._settings)
 
-        for monitor in self._monitors:
-            freq = monitor.get_freq()
-            if monitor.is_enabled() and freq in self._freqs:
-                index = numpy.where(freq == event.f)[0]
-                monitor.set_level(levels[index], event.timestamp)
+        self._toolbar.set_freq(self._settings.get_freq())
+        self.__clear_monitors()
+        self.__add_monitors()
 
-        if self._dialogSpectrum is not None:
-            self._dialogSpectrum.set_spectrum(self._freqs,
-                                        self._levels,
-                                        event.timestamp)
+    def __on_save(self, _event):
+        self.__save(False)
+
+    def __on_save_as(self, _event):
+        self.__save(True)
 
     def __on_clear(self, _event):
         resp = wx.MessageBox('Clear recorded data?', 'Warning',
@@ -240,14 +276,40 @@ class FrameMain(wx.Frame):
         dlg.ShowModal()
 
     def __on_exit(self, _event):
-        if self.__has_signals():
-            resp = wx.MessageBox('Data is not saved, quit?', 'Warning',
-                                 wx.OK | wx.CANCEL | wx.ICON_WARNING)
-            if resp != wx.OK:
+        if not self.__save_warning():
                 return
 
         self.__on_stop()
 
+        self.__update_settings()
+        self._settings.save()
+
+        self._frame.Destroy()
+
+    def __on_scan_error(self, event):
+        wx.MessageBox(event.msg,
+                      'Error', wx.OK | wx.ICON_ERROR)
+        self._toolbar.enable_start(True)
+
+    def __on_scan_data(self, event):
+        levels = numpy.log10(event.l)
+        levels *= 10
+
+        self._levels += levels
+        self._levels /= 2.
+
+        for monitor in self._monitors:
+            freq = monitor.get_freq()
+            if monitor.is_enabled() and freq in self._freqs:
+                index = numpy.where(freq == event.f)[0]
+                monitor.set_level(levels[index], event.timestamp)
+
+        if self._dialogSpectrum is not None:
+            self._dialogSpectrum.set_spectrum(self._freqs,
+                                              self._levels,
+                                              event.timestamp)
+
+    def __update_settings(self):
         self._settings.set_freq(self._toolbar.get_freq())
         self._settings.set_gain(self._toolbar.get_gain())
         self._settings.clear_monitors()
@@ -255,9 +317,32 @@ class FrameMain(wx.Frame):
             self._settings.add_monitor(monitor.is_enabled(),
                                        monitor.get_freq(),
                                        monitor.get_threshold())
-        self._settings.save()
 
-        self._frame.Destroy()
+    def __save(self, prompt):
+        if prompt or self._filename is None:
+            defDir, defFile = '', ''
+            if self._filename is not None:
+                defDir, defFile = os.path.split(self._filename)
+            dlg = wx.FileDialog(self._frame,
+                                'Save File',
+                                defDir, defFile,
+                                'rfmon files (*.rfmon)|*.rfmon',
+                                wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+            if dlg.ShowModal() == wx.ID_CANCEL:
+                return
+            self._filename = dlg.GetPath()
+
+        save_recordings(self._filename,
+                        self._settings)
+
+    def __save_warning(self):
+        if not self.__is_saved():
+            resp = wx.MessageBox('Data is not saved, quit?', 'Warning',
+                                 wx.OK | wx.CANCEL | wx.ICON_WARNING)
+            if resp != wx.OK:
+                return False
+
+        return True
 
 
 if __name__ == '__main__':

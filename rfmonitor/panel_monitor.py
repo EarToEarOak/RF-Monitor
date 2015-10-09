@@ -36,8 +36,9 @@ class PanelMonitor(wx.Panel):
     def __init__(self, parent):
         self._parent = parent
         self._isRecording = False
+        self._isSaved = True
         self._timestamp = None
-        self._timestamps = []
+        self._signals = []
 
         pre = wx.PrePanel()
         self._ui = load_ui('PanelMonitor.xrc')
@@ -80,7 +81,7 @@ class PanelMonitor(wx.Panel):
         self._buttonDel.Enable(not self.is_enabled())
 
     def __on_del(self, _event):
-        if len(self._timestamps):
+        if not self.get_saved():
             resp = wx.MessageBox('''Remove monitor?\n'''
                                  '''The recording on this channel will be lost''',
                                  'Warning',
@@ -90,8 +91,11 @@ class PanelMonitor(wx.Panel):
         self._on_del(self)
 
     def __set_signals(self):
-        signals = len(self._timestamps)
-        self._textSignals.SetLabel('Recorded: {:4d}'.format(signals))
+        signals = len(self._signals)
+        label = 'Recorded: {:4d}'.format(signals)
+        if not self._isSaved:
+            label += '*'
+        self._textSignals.SetLabel(label)
         self._choiceFreq.Enable(signals < 1)
 
     def set_callback(self, on_del):
@@ -116,7 +120,8 @@ class PanelMonitor(wx.Panel):
             self._choiceFreq.SetSelection(freqs.index(freq))
         except ValueError:
             self._choiceFreq.SetSelection(len(freqs) / 2)
-        self._timestamps = []
+        self._signals = []
+        self._isSaved = True
         self.__set_signals()
 
     def get_freq(self):
@@ -139,20 +144,31 @@ class PanelMonitor(wx.Panel):
                     self._timestamp = timestamp
             else:
                 if level < threshold:
-                    self._timestamps.append((self._timestamp, timestamp))
+                    self._signals.append((self._timestamp, timestamp))
                     self._timestamp = None
+                    self._isSaved = False
                     self.__set_signals()
 
     def set_recording(self, isRecording):
         self._isRecording = isRecording
 
+    def set_signals(self, signals):
+        self._signals = signals
+
     def get_signals(self):
-        return self._timestamps
+        return self._signals
 
     def clear_signals(self):
-        self._timestamps = []
+        self._signals = []
         self._timestamp = None
+        self._isSaved = True
         self.__set_signals()
+
+    def set_saved(self):
+        self._isSaved = True
+
+    def get_saved(self):
+        return self._isSaved
 
 
 if __name__ == '__main__':

@@ -31,6 +31,7 @@ class Settings(object):
         enabled = False
         freq = 0
         threshold = 0
+        signals = []
 
     def __init__(self):
         self._config = wx.Config('rf-monitor')

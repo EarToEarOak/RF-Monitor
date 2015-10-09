@@ -154,6 +154,7 @@ class PanelMonitor(wx.Panel):
 
     def set_signals(self, signals):
         self._signals = signals
+        self.__set_signals()
 
     def get_signals(self):
         return self._signals
@@ -166,6 +167,7 @@ class PanelMonitor(wx.Panel):
 
     def set_saved(self):
         self._isSaved = True
+        self.__set_signals()
 
     def get_saved(self):
         return self._isSaved

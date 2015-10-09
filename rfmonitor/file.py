@@ -37,7 +37,8 @@ def save_recordings(filename, settings):
     for monitor in settings.get_monitors():
         jsonMonitor = {'Enabled': monitor.enabled,
                        'Frequency': monitor.freq,
-                       'Threshold': monitor.threshold}
+                       'Threshold': monitor.threshold,
+                       'Signals': monitor.signals}
         jsonMonitors.append(jsonMonitor)
 
     data = [APP_NAME, {'Version': VERSION,
@@ -63,7 +64,8 @@ def load_recordings(filename, settings):
     for monitor in monitors:
         settings.add_monitor(monitor['Enabled'],
                              monitor['Frequency'],
-                             monitor['Threshold'])
+                             monitor['Threshold'],
+                             monitor['Signals'])
 
 
 if __name__ == '__main__':

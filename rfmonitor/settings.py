@@ -28,10 +28,11 @@ import wx
 
 class Settings(object):
     class Monitor(object):
-        enabled = False
-        freq = 0
-        threshold = 0
-        signals = []
+        def __init__(self):
+            self.enabled = False
+            self.freq = 0
+            self.threshold = 0
+            self.signals = []
 
     def __init__(self):
         self._config = wx.Config('rf-monitor')
@@ -75,11 +76,12 @@ class Settings(object):
         self._monitors = []
         self._config.DeleteGroup('/Monitors')
 
-    def add_monitor(self, enabled, freq, threshold):
+    def add_monitor(self, enabled, freq, threshold, signals):
         monitor = Settings.Monitor()
         monitor.enabled = enabled
         monitor.freq = freq
         monitor.threshold = threshold
+        monitor.signals = signals
         self._monitors.append(monitor)
 
     def get_monitors(self):

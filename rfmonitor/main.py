@@ -131,6 +131,7 @@ class FrameMain(wx.Frame):
             panelMonitor.set_enabled(monitor.enabled)
             panelMonitor.set_freq(monitor.freq)
             panelMonitor.set_threshold(monitor.threshold)
+            panelMonitor.set_signals(monitor.signals)
             self.__add_monitor(panelMonitor)
 
         if not len(self._monitors):
@@ -162,12 +163,7 @@ class FrameMain(wx.Frame):
         return True
 
     def __on_freq(self, freq):
-        for _i in range(len(self._monitors)):
-            self._sizerWindow.Hide(0)
-            self._sizerWindow.Remove(0)
-        self._frame.Layout()
-
-        del self._monitors[:]
+        self.__clear_monitors()
 
         _l, freqs = psd(numpy.zeros(2, dtype=numpy.complex64),
                         BINS, SAMPLE_RATE)
@@ -230,14 +226,19 @@ class FrameMain(wx.Frame):
         if not self.__save_warning():
                 return
 
+        defDir, defFile = '', ''
+        if self._filename is not None:
+            defDir, defFile = os.path.split(self._filename)
         dlg = wx.FileDialog(self._frame,
-                            'Open File', '', '',
+                            'Open File',
+                            defDir, defFile,
                             'rfmon files (*.rfmon)|*.rfmon',
                             wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_CANCEL:
             return
 
-        load_recordings(dlg.GetPath(),
+        self._filename = dlg.GetPath()
+        load_recordings(self._filename,
                         self._settings)
 
         self._toolbar.set_freq(self._settings.get_freq())
@@ -300,7 +301,7 @@ class FrameMain(wx.Frame):
 
         for monitor in self._monitors:
             freq = monitor.get_freq()
-            if monitor.is_enabled() and freq in self._freqs:
+            if monitor.is_enabled():
                 index = numpy.where(freq == event.f)[0]
                 monitor.set_level(levels[index], event.timestamp)
 
@@ -316,7 +317,8 @@ class FrameMain(wx.Frame):
         for monitor in self._monitors:
             self._settings.add_monitor(monitor.is_enabled(),
                                        monitor.get_freq(),
-                                       monitor.get_threshold())
+                                       monitor.get_threshold(),
+                                       monitor.get_signals())
 
     def __save(self, prompt):
         if prompt or self._filename is None:
@@ -332,8 +334,12 @@ class FrameMain(wx.Frame):
                 return
             self._filename = dlg.GetPath()
 
+        self.__update_settings()
         save_recordings(self._filename,
                         self._settings)
+
+        for monitor in self._monitors:
+            monitor.set_saved()
 
     def __save_warning(self):
         if not self.__is_saved():

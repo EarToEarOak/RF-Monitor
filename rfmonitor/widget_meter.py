@@ -26,7 +26,7 @@
 from wx import xrc
 import wx
 
-from constants import LEVEL_MAX, LEVEL_MIN
+from rfmonitor.constants import LEVEL_MAX, LEVEL_MIN
 
 
 class WidgetMeter(wx.Panel):

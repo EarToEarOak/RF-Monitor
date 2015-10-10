@@ -28,11 +28,11 @@ import collections
 from wx import xrc
 import wx
 
-from constants import LEVEL_MIN, LEVEL_MAX, MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
-from ui import load_ui
-from utils import set_level
-from widget_meter import XrcHandlerMeter
-from xrchandlers import XrcHandlerNumCtrl
+from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX, MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
+from rfmonitor.ui import load_ui
+from rfmonitor.utils import set_level
+from rfmonitor.widget_meter import XrcHandlerMeter
+from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 
 class PanelMonitor(wx.Panel):

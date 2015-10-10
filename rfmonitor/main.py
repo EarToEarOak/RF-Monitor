@@ -31,17 +31,17 @@ from rtlsdr.rtlsdr import RtlSdr
 from wx import xrc
 import wx
 
-from constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME
-from dialog_about import DialogAbout
-from dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
-from dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
-from events import EVENT_THREAD, Events
-from file import save_recordings, load_recordings
-from panel_monitor import PanelMonitor
-from panel_toolbar import XrcHandlerToolbar
-from receive import Receive
-from settings import Settings
-from ui import load_ui
+from rfmonitor.constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME
+from rfmonitor.dialog_about import DialogAbout
+from rfmonitor.dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
+from rfmonitor.dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
+from rfmonitor.events import EVENT_THREAD, Events
+from rfmonitor.file import save_recordings, load_recordings
+from rfmonitor.panel_monitor import PanelMonitor
+from rfmonitor.panel_toolbar import XrcHandlerToolbar
+from rfmonitor.receive import Receive
+from rfmonitor.settings import Settings
+from rfmonitor.ui import load_ui
 
 
 class RfMonitor(wx.App):
@@ -233,7 +233,7 @@ class FrameMain(wx.Frame):
 
     def __on_open(self, _event):
         if not self.__save_warning():
-                return
+            return
 
         defDir, defFile = '', ''
         if self._filename is not None:
@@ -294,7 +294,7 @@ class FrameMain(wx.Frame):
 
     def __on_exit(self, _event):
         if not self.__save_warning():
-                return
+            return
 
         self.__on_stop()
 
@@ -326,7 +326,8 @@ class FrameMain(wx.Frame):
             freq = monitor.get_freq()
             if monitor.is_enabled():
                 index = numpy.where(freq == event['f'])[0]
-                updated |= monitor.set_level(levels[index][0], event['timestamp'])
+                updated |= monitor.set_level(levels[index][0],
+                                             event['timestamp'])
 
         if self._dialogTimeline is not None and updated:
             self._dialogTimeline.set_signals(self.__get_signals())

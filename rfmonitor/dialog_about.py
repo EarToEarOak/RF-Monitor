@@ -26,7 +26,7 @@
 from wx import xrc
 import wx
 
-from ui import load_ui
+from rfmonitor.ui import load_ui
 
 
 class DialogAbout(wx.Dialog):

@@ -25,7 +25,7 @@
 
 import json
 
-from constants import APP_NAME
+from rfmonitor.constants import APP_NAME
 
 
 VERSION = 1

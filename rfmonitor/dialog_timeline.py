@@ -38,8 +38,8 @@ from matplotlib.ticker import ScalarFormatter, AutoMinorLocator
 from wx import xrc
 import wx.lib.newevent
 
-from constants import MAX_TIMELINE_FPS, BINS, SAMPLE_RATE
-from ui import load_ui
+from rfmonitor.constants import MAX_TIMELINE_FPS, BINS, SAMPLE_RATE
+from rfmonitor.ui import load_ui
 
 
 EventTimelineClose, EVT_TIMELINE_CLOSE = wx.lib.newevent.NewEvent()

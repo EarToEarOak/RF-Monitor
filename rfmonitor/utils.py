@@ -26,7 +26,8 @@
 import numpy
 
 
-def set_level(signals, levels, isRecording, threshold, level, timestamp, lastTime):
+def set_level(signals, levels,
+              isRecording, threshold, level, timestamp, lastTime):
     if isRecording:
         if lastTime is None:
             if level >= threshold:

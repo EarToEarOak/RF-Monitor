@@ -31,11 +31,11 @@ import time
 import numpy
 import wx
 
-from cli_monitor import CliMonitor
-from events import Events
-from file import load_recordings, save_recordings
-from receive import Receive
-from settings import Settings
+from rfmonitor.cli_monitor import CliMonitor
+from rfmonitor.events import Events
+from rfmonitor.file import load_recordings, save_recordings
+from rfmonitor.receive import Receive
+from rfmonitor.settings import Settings
 
 
 class Cli(wx.EvtHandler):

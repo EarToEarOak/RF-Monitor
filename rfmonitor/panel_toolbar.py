@@ -27,8 +27,8 @@ from wx import xrc
 import wx
 from wx.lib import masked
 
-from ui import load_ui
-from xrchandlers import XrcHandlerNumCtrl
+from rfmonitor.ui import load_ui
+from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 
 class PanelToolbar(wx.Panel):

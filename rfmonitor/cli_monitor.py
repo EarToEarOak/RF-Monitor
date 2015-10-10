@@ -25,8 +25,8 @@
 
 import collections
 
-from constants import MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
-from utils import set_level
+from rfmonitor.constants import MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
+from rfmonitor.utils import set_level
 
 
 class CliMonitor(object):

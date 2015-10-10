@@ -31,8 +31,8 @@ from matplotlib.mlab import psd
 import numpy
 import rtlsdr
 
-from constants import SAMPLE_RATE, SAMPLES, BINS
-from events import Event, Events, post_event
+from rfmonitor.constants import SAMPLE_RATE, SAMPLES, BINS
+from rfmonitor.events import Event, Events, post_event
 
 
 class Receive(threading.Thread):

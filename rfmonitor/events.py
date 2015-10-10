@@ -50,3 +50,7 @@ def post_event(destination, event):
     elif isinstance(destination, wx.EvtHandler):
         wx.PostEvent(destination, event)
 
+
+if __name__ == '__main__':
+    print 'Please run rfmonitor.py'
+    exit(1)

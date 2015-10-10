@@ -124,7 +124,7 @@ class PanelToolbar(wx.Panel):
             self._choiceGain.SetSelection(len(gains) / 2)
 
     def get_gain(self):
-        index = self._choiceGain.GetCurrentSelection()
+        index = self._choiceGain.GetSelection()
         return float(self._choiceGain.GetItems()[index])
 
 

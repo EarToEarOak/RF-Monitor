@@ -69,9 +69,13 @@ class PanelMonitor(wx.Panel):
 
         self._on_del = None
 
+        self.Bind(wx.EVT_CHOICE, self.__on_freq, self._choiceFreq)
         self.Bind(wx.EVT_SLIDER, self.__on_threshold, self._sliderThreshold)
         self.Bind(wx.EVT_CHECKBOX, self.__on_enable, self._checkEnable)
         self.Bind(wx.EVT_BUTTON, self.__on_del, self._buttonDel)
+
+    def __on_freq(self, _event):
+        self.set_freq(self.get_freq())
 
     def __on_threshold(self, _event):
         threshold = self._sliderThreshold.GetValue()
@@ -125,7 +129,7 @@ class PanelMonitor(wx.Panel):
         self.__set_signals()
 
     def get_freq(self):
-        index = self._choiceFreq.GetCurrentSelection()
+        index = self._choiceFreq.GetSelection()
         return float(self._choiceFreq.GetItems()[index])
 
     def set_threshold(self, threshold):

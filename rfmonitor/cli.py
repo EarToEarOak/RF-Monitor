@@ -35,6 +35,7 @@ from rfmonitor.cli_monitor import CliMonitor
 from rfmonitor.events import Events
 from rfmonitor.file import load_recordings, save_recordings
 from rfmonitor.receive import Receive
+from rfmonitor.server import Server
 from rfmonitor.settings import Settings
 
 
@@ -55,6 +56,8 @@ class Cli(wx.EvtHandler):
 
         self._signal = signal.signal(signal.SIGINT, self.__on_exit)
 
+        self._server = Server(self._queue)
+
         self.__start()
 
         while not self._cancel:
@@ -63,6 +66,9 @@ class Cli(wx.EvtHandler):
 
         print 'Exiting'
         self._receive.stop()
+        if self._server is not None:
+            self._server.stop()
+
         if not self.__is_saved():
             print 'Saving'
             self.__save()
@@ -113,6 +119,8 @@ class Cli(wx.EvtHandler):
             self.__on_scan_error(event.data)
         elif event.type == Events.SCAN_DATA:
             self.__on_scan_data(event.data)
+        if event.type == Events.SERVER_ERROR:
+            self.__on_server_error(event.data)
         else:
             time.sleep(0.01)
 
@@ -128,7 +136,15 @@ class Cli(wx.EvtHandler):
             freq = monitor.get_freq()
             if monitor.is_enabled():
                 index = numpy.where(freq == event['f'])[0]
-                monitor.set_level(levels[index][0], event['timestamp'])
+                update = monitor.set_level(levels[index][0],
+                                           event['timestamp'])
+
+            if update and self._server is not None:
+                self._server.send(freq, update)
+
+    def __on_server_error(self, event):
+        sys.stderr.write(event['msg'])
+        self._server = None
 
 
 if __name__ == '__main__':

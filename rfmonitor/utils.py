@@ -36,9 +36,10 @@ def set_level(signals, levels,
             if level < threshold:
                 strength = numpy.mean(levels)
                 levels.clear()
-                signals.append((lastTime, timestamp, strength))
+                signal = (lastTime, timestamp, strength)
+                signals.append(signal)
                 lastTime = None
-                return True, lastTime
+                return signal, lastTime
         if level >= threshold:
             levels.append(level)
     return False, lastTime

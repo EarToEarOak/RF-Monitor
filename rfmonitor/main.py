@@ -24,6 +24,7 @@
 #
 
 import os
+import sys
 
 from matplotlib.mlab import psd
 import numpy
@@ -40,6 +41,7 @@ from rfmonitor.file import save_recordings, load_recordings
 from rfmonitor.panel_monitor import PanelMonitor
 from rfmonitor.panel_toolbar import XrcHandlerToolbar
 from rfmonitor.receive import Receive
+from rfmonitor.server import Server
 from rfmonitor.settings import Settings
 from rfmonitor.ui import load_ui
 
@@ -94,6 +96,8 @@ class FrameMain(wx.Frame):
         self._toolbar.set_gain(self._settings.get_gain())
 
         self.__add_monitors()
+
+        self._server = Server(self._frame)
 
         self._menu = self._frame.GetMenuBar()
 
@@ -298,6 +302,9 @@ class FrameMain(wx.Frame):
 
         self.__on_stop()
 
+        if self._server is not None:
+            self._server.stop()
+
         self.__update_settings()
         self._settings.save()
 
@@ -308,6 +315,8 @@ class FrameMain(wx.Frame):
             self.__on_scan_error(event.data)
         elif event.type == Events.SCAN_DATA:
             self.__on_scan_data(event.data)
+        if event.type == Events.SERVER_ERROR:
+            self.__on_server_error(event.data)
 
     def __on_scan_error(self, event):
         wx.MessageBox(event['msg'],
@@ -326,8 +335,12 @@ class FrameMain(wx.Frame):
             freq = monitor.get_freq()
             if monitor.is_enabled():
                 index = numpy.where(freq == event['f'])[0]
-                updated |= monitor.set_level(levels[index][0],
-                                             event['timestamp'])
+                update = monitor.set_level(levels[index][0],
+                                           event['timestamp'])
+                if update:
+                    updated = True
+                    if self._server is not None:
+                        self._server.send(freq, update)
 
         if self._dialogTimeline is not None and updated:
             self._dialogTimeline.set_signals(self.__get_signals())
@@ -336,6 +349,10 @@ class FrameMain(wx.Frame):
             self._dialogSpectrum.set_spectrum(self._freqs,
                                               self._levels,
                                               event['timestamp'])
+
+    def __on_server_error(self, event):
+        sys.stderr.write(event['msg'])
+        self._server = None
 
     def __set_title(self):
         title = APP_NAME

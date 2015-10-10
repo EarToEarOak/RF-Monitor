@@ -33,7 +33,7 @@ EVENT_THREAD = wx.NewId()
 
 
 class Events(object):
-    SCAN_ERROR, SCAN_DATA = range(2)
+    SCAN_ERROR, SCAN_DATA, SERVER_ERROR = range(3)
 
 
 class Event(wx.PyEvent):

@@ -29,16 +29,22 @@ import sys
 
 import wx
 
-from constants import APP_NAME
-from main import RfMonitor, FrameMain
+from rfmonitor.cli import Cli
+from rfmonitor.constants import APP_NAME
+from rfmonitor.main import RfMonitor, FrameMain
 
 
 def __arguments():
     parser = argparse.ArgumentParser(prog="rfmonitor.py",
                                      description='RF signal monitor')
 
+    parser.add_argument('-c', help='Command line mode', action='store_true')
     parser.add_argument("file", nargs='?')
     args = parser.parse_args()
+
+    if args.c and args.file is None:
+        sys.stderr.write('Filename required in command line mode')
+        exit(1)
 
     if args.file is not None and not os.path.exists(args.file):
         sys.stderr.write('File not found')
@@ -52,11 +58,14 @@ if __name__ == '__main__':
 
     args = __arguments()
 
-    app = RfMonitor()
-    app.SetClassName(APP_NAME)
-    wx.Locale().Init2()
-    frame = FrameMain()
-    if args.file is not None:
-        frame.open(args.file)
+    if args.c:
+        cli = Cli(args.file)
+    else:
+        app = RfMonitor()
+        app.SetClassName(APP_NAME)
+        wx.Locale().Init2()
+        frame = FrameMain()
+        if args.file is not None:
+            frame.open(args.file)
 
-    app.MainLoop()
+        app.MainLoop()

@@ -35,10 +35,11 @@ from constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME
 from dialog_about import DialogAbout
 from dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
 from dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
+from events import EVENT_THREAD, Events
 from file import save_recordings, load_recordings
 from panel_monitor import PanelMonitor
 from panel_toolbar import XrcHandlerToolbar
-from receive import Receive, EVT_SCAN_ERROR, EVT_SCAN_DATA
+from receive import Receive
 from settings import Settings
 from ui import load_ui
 
@@ -122,10 +123,10 @@ class FrameMain(wx.Frame):
 
         self._frame.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
         self._frame.Bind(EVT_SPECTRUM_CLOSE, self.__on_spectrum_close)
-        self._frame.Bind(EVT_SCAN_ERROR, self.__on_scan_error)
-        self._frame.Bind(EVT_SCAN_DATA, self.__on_scan_data)
 
         self._frame.Bind(wx.EVT_CLOSE, self.__on_exit)
+
+        self._frame.Connect(-1, -1, EVENT_THREAD, self.__on_event)
 
         self._frame.Show()
 
@@ -302,13 +303,19 @@ class FrameMain(wx.Frame):
 
         self._frame.Destroy()
 
+    def __on_event(self, event):
+        if event.type == Events.SCAN_ERROR:
+            self.__on_scan_error(event.data)
+        elif event.type == Events.SCAN_DATA:
+            self.__on_scan_data(event.data)
+
     def __on_scan_error(self, event):
-        wx.MessageBox(event.msg,
+        wx.MessageBox(event['msg'],
                       'Error', wx.OK | wx.ICON_ERROR)
         self._toolbar.enable_start(True)
 
     def __on_scan_data(self, event):
-        levels = numpy.log10(event.l)
+        levels = numpy.log10(event['l'])
         levels *= 10
 
         self._levels += levels
@@ -318,8 +325,8 @@ class FrameMain(wx.Frame):
         for monitor in self._monitors:
             freq = monitor.get_freq()
             if monitor.is_enabled():
-                index = numpy.where(freq == event.f)[0]
-                updated |= monitor.set_level(levels[index][0], event.timestamp)
+                index = numpy.where(freq == event['f'])[0]
+                updated |= monitor.set_level(levels[index][0], event['timestamp'])
 
         if self._dialogTimeline is not None and updated:
             self._dialogTimeline.set_signals(self.__get_signals())
@@ -327,7 +334,7 @@ class FrameMain(wx.Frame):
         if self._dialogSpectrum is not None:
             self._dialogSpectrum.set_spectrum(self._freqs,
                                               self._levels,
-                                              event.timestamp)
+                                              event['timestamp'])
 
     def __set_title(self):
         title = APP_NAME

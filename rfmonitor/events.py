@@ -23,26 +23,30 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import numpy
+
+import Queue
+
+import wx
 
 
-def set_level(signals, levels, isRecording, threshold, level, timestamp, lastTime):
-    if isRecording:
-        if lastTime is None:
-            if level >= threshold:
-                lastTime = timestamp
-        else:
-            if level < threshold:
-                strength = numpy.mean(levels)
-                levels.clear()
-                signals.append((lastTime, timestamp, strength))
-                lastTime = None
-                return True, lastTime
-        if level >= threshold:
-            levels.append(level)
-    return False, lastTime
+EVENT_THREAD = wx.NewId()
 
 
-if __name__ == '__main__':
-    print 'Please run rfmonitor.py'
-    exit(1)
+class Events(object):
+    SCAN_ERROR, SCAN_DATA = range(2)
+
+
+class Event(wx.PyEvent):
+    def __init__(self, eventType, **kwargs):
+        wx.PyEvent.__init__(self)
+        self.SetEventType(EVENT_THREAD)
+        self.type = eventType
+        self.data = kwargs
+
+
+def post_event(destination, event):
+    if isinstance(destination, Queue.Queue):
+        destination.put(event)
+    elif isinstance(destination, wx.EvtHandler):
+        wx.PostEvent(destination, event)
+

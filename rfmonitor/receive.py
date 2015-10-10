@@ -30,13 +30,9 @@ import time
 from matplotlib.mlab import psd
 import numpy
 import rtlsdr
-import wx.lib.newevent
 
 from constants import SAMPLE_RATE, SAMPLES, BINS
-
-
-EventScanError, EVT_SCAN_ERROR = wx.lib.newevent.NewEvent()
-EventScanData, EVT_SCAN_DATA = wx.lib.newevent.NewEvent()
+from events import Event, Events, post_event
 
 
 class Receive(threading.Thread):
@@ -54,8 +50,8 @@ class Receive(threading.Thread):
 
         devices = rtlsdr.librtlsdr.rtlsdr_get_device_count()
         if devices == 0:
-            evt = EventScanError(msg='No device found')
-            wx.PostEvent(eventHandler, evt)
+            event = Event(Events.SCAN_ERROR, msg='No device found')
+            post_event(eventHandler, event)
         else:
             self.start()
 
@@ -69,8 +65,8 @@ class Receive(threading.Thread):
         f /= 1e6
         f += self._freq
 
-        evt = EventScanData(timestamp=timestamp, l=l, f=f)
-        wx.PostEvent(self._eventHandler, evt)
+        event = Event(Events.SCAN_DATA, timestamp=timestamp, l=l, f=f)
+        post_event(self._eventHandler, event)
 
     def __stream_to_complex(self, stream):
         bytes_np = numpy.ctypeslib.as_array(stream)

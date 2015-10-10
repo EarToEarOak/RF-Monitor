@@ -23,20 +23,25 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-APP_NAME = 'RF Monitor'
 
-LEVEL_MIN = -100
-LEVEL_MAX = 10
+import numpy
 
-SAMPLE_RATE = 2.4e6
-SAMPLES = 256 * 1024
 
-MAX_SPECTRUM_FPS = 25
-MAX_TIMELINE_FPS = 5
-
-MAX_LEVELS_TIME = 300  # 5 minutes
-
-BINS = 256  # SAMPLE_RATE/BINS = 9.375kHz
+def set_level(signals, levels, isRecording, threshold, level, timestamp, lastTime):
+    if isRecording:
+        if lastTime is None:
+            if level >= threshold:
+                lastTime = timestamp
+        else:
+            if level < threshold:
+                strength = numpy.mean(levels)
+                levels.clear()
+                signals.append((lastTime, timestamp, strength))
+                lastTime = None
+                return True, lastTime
+        if level >= threshold:
+            levels.append(level)
+    return False, lastTime
 
 if __name__ == '__main__':
     print 'Please run rfmonitor.py'

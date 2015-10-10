@@ -139,7 +139,7 @@ class DialogTimeline(wx.Dialog):
             self.__clear_plots()
             for freq, signals in allSignals:
                 barsX = []
-                for start, end in signals:
+                for start, end, _level in signals:
                     tStart = epoch2num(start)
                     tEnd = epoch2num(end)
                     barsX.append([tStart, tEnd - tStart])

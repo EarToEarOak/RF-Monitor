@@ -23,11 +23,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import collections
+
 from wx import xrc
 import wx
 
-from constants import LEVEL_MIN, LEVEL_MAX
+from constants import LEVEL_MIN, LEVEL_MAX, MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
 from ui import load_ui
+from utils import set_level
 from widget_meter import XrcHandlerMeter
 from xrchandlers import XrcHandlerNumCtrl
 
@@ -39,6 +42,8 @@ class PanelMonitor(wx.Panel):
         self._isSaved = True
         self._timestamp = None
         self._signals = []
+        levelsLength = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
+        self._levels = collections.deque(maxlen=round(levelsLength))
 
         pre = wx.PrePanel()
         self._ui = load_ui('PanelMonitor.xrc')
@@ -142,18 +147,18 @@ class PanelMonitor(wx.Panel):
     def set_level(self, level, timestamp):
         self._meterLevel.set_level(level)
         threshold = self._sliderThreshold.GetValue()
-        if self._isRecording:
-            if self._timestamp is None:
-                if level >= threshold:
-                    self._timestamp = timestamp
-            else:
-                if level < threshold:
-                    self._signals.append((self._timestamp, timestamp))
-                    self._timestamp = None
-                    self._isSaved = False
-                    self.__set_signals()
-                    return True
-        return False
+
+        update, self._timestamp = set_level(self._signals, self._levels,
+                                            self._isRecording,
+                                            threshold,
+                                            level,
+                                            timestamp,
+                                            self._timestamp)
+        if update:
+            self._isSaved = False
+            self.__set_signals()
+
+        return update
 
     def set_recording(self, isRecording):
         self._isRecording = isRecording

@@ -329,7 +329,7 @@ class FrameMain(wx.Frame):
             freq = monitor.get_freq()
             if monitor.is_enabled():
                 index = numpy.where(freq == event.f)[0]
-                updated |= monitor.set_level(levels[index], event.timestamp)
+                updated |= monitor.set_level(levels[index][0], event.timestamp)
 
         if self._dialogTimeline is not None and updated:
             self._dialogTimeline.set_signals(self.__get_signals())

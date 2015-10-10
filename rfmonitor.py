@@ -35,6 +35,6 @@ if __name__ == '__main__':
     app = RfMonitor()
     app.SetClassName(APP_NAME)
     wx.Locale().Init2()
-    frame = FrameMain(APP_NAME)
+    frame = FrameMain()
 
     app.MainLoop()

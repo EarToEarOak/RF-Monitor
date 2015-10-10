@@ -16,37 +16,37 @@
                 <label>File</label>
                 <object class="wxMenuItem" name="menuOpen">
                     <label>Open...</label>
-                    <help></help>
+                    <help>Open a file</help>
                 </object>
                 <object class="wxMenuItem" name="menuSave">
                     <label>Save...</label>
-                    <help></help>
+                    <help>Save file</help>
                 </object>
                 <object class="wxMenuItem" name="menuSaveAs">
                     <label>Save as...</label>
-                    <help></help>
+                    <help>Save to file</help>
                 </object>
                 <object class="separator" />
                 <object class="wxMenuItem" name="menuClear">
                     <label>Clear all recordings...</label>
-                    <help></help>
+                    <help>Clear recordings</help>
                 </object>
                 <object class="separator" />
-                <object class="wxMenuItem" name="menuClose">
-                    <label>Close</label>
-                    <help></help>
+                <object class="wxMenuItem" name="menuExit">
+                    <label>Exit</label>
+                    <help>Exit the application</help>
                 </object>
             </object>
             <object class="wxMenu" name="menuView">
                 <label>View</label>
                 <object class="wxMenuItem" name="menuSpectrum">
                     <label>Spectrum</label>
-                    <help></help>
+                    <help>Display the spectrum</help>
                     <checkable>1</checkable>
                 </object>
                 <object class="wxMenuItem" name="menuTimeline">
                     <label>Timeline</label>
-                    <help></help>
+                    <help>Display the timeline</help>
                     <checkable>1</checkable>
                 </object>
             </object>
@@ -54,7 +54,7 @@
                 <label>Help</label>
                 <object class="wxMenuItem" name="menuAbout">
                     <label>About</label>
-                    <help></help>
+                    <help>About the application</help>
                 </object>
             </object>
         </object>

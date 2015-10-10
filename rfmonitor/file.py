@@ -36,13 +36,13 @@ def save_recordings(filename, settings):
     jsonMonitors = []
     for monitor in settings.get_monitors():
         jsonMonitor = {'Enabled': monitor.enabled,
-                       'Frequency': monitor.freq,
+                       'Frequency': monitor.freq * 1e6,
                        'Threshold': monitor.threshold,
                        'Signals': monitor.signals}
         jsonMonitors.append(jsonMonitor)
 
     data = [APP_NAME, {'Version': VERSION,
-                       'Frequency': settings.get_freq(),
+                       'Frequency': settings.get_freq() * 1e6,
                        'Monitors': jsonMonitors}]
 
     handle = open(filename, 'wb')
@@ -57,13 +57,13 @@ def load_recordings(filename, settings):
 
     _header = data[0]
     _version = data[1]['Version']
-    settings.freq = data[1]['Frequency']
+    settings.freq = data[1]['Frequency'] / 1e6
     monitors = data[1]['Monitors']
 
     settings.clear_monitors()
     for monitor in monitors:
         settings.add_monitor(monitor['Enabled'],
-                             monitor['Frequency'],
+                             monitor['Frequency'] / 1e6,
                              monitor['Threshold'],
                              monitor['Signals'])
 

@@ -31,7 +31,7 @@ from rtlsdr.rtlsdr import RtlSdr
 from wx import xrc
 import wx
 
-from constants import BINS, SAMPLE_RATE, LEVEL_MIN
+from constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME
 from dialog_about import DialogAbout
 from dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
 from dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
@@ -53,7 +53,7 @@ class RfMonitor(wx.App):
 
 
 class FrameMain(wx.Frame):
-    def __init__(self, title):
+    def __init__(self):
         self._monitors = []
         self._freqs = []
         self._levels = numpy.zeros(BINS, dtype=numpy.float32)
@@ -69,7 +69,7 @@ class FrameMain(wx.Frame):
         self._ui.AddHandler(handlerToolbar)
 
         self._frame = self._ui.LoadFrame(None, 'FrameMain')
-        self._frame.SetTitle(title)
+        self.__set_title()
 
         self._window = xrc.XRCCTRL(self._frame, 'window')
         self._status = xrc.XRCCTRL(self._frame, 'statusBar')
@@ -114,9 +114,9 @@ class FrameMain(wx.Frame):
         idSpectrum = xrc.XRCID('menuSpectrum')
         self._frame.Bind(wx.EVT_MENU, self.__on_spectrum, id=idSpectrum)
         self._menuSpectrum = self._menu.FindItemById(idSpectrum)
-        idClose = xrc.XRCID('menuClose')
-        self._menuClose = self._menu.FindItemById(idClose)
-        self._frame.Bind(wx.EVT_MENU, self.__on_exit, id=idClose)
+        idExit = xrc.XRCID('menuExit')
+        self._menuExit = self._menu.FindItemById(idExit)
+        self._frame.Bind(wx.EVT_MENU, self.__on_exit, id=idExit)
         idAbout = xrc.XRCID('menuAbout')
         self._frame.Bind(wx.EVT_MENU, self.__on_about, id=idAbout)
 
@@ -187,7 +187,7 @@ class FrameMain(wx.Frame):
         self._menuSave.Enable(False)
         self._menuSaveAs.Enable(False)
         self._menuClear.Enable(False)
-        self._menuClose.Enable(False)
+        self._menuExit.Enable(False)
         if self._receive is None:
             self._receive = Receive(self._frame,
                                     self._toolbar.get_freq(),
@@ -205,7 +205,7 @@ class FrameMain(wx.Frame):
         self._menuSave.Enable(True)
         self._menuSaveAs.Enable(True)
         self._menuClear.Enable(True)
-        self._menuClose.Enable(True)
+        self._menuExit.Enable(True)
         if self._receive is not None:
             self._receive.stop()
             self._receive = None
@@ -249,6 +249,7 @@ class FrameMain(wx.Frame):
         load_recordings(self._filename,
                         self._settings)
 
+        self.__set_title()
         self._toolbar.set_freq(self._settings.get_freq())
         self.__clear_monitors()
         self.__add_monitors()
@@ -338,6 +339,13 @@ class FrameMain(wx.Frame):
                                               self._levels,
                                               event.timestamp)
 
+    def __set_title(self):
+        title = APP_NAME
+        if self._filename is not None:
+            _head, tail = os.path.split(self._filename)
+            title += ' - ' + tail
+        self._frame.SetTitle(title)
+
     def __update_settings(self):
         self._settings.set_freq(self._toolbar.get_freq())
         self._settings.set_gain(self._toolbar.get_gain())
@@ -365,6 +373,7 @@ class FrameMain(wx.Frame):
         self.__update_settings()
         save_recordings(self._filename,
                         self._settings)
+        self.__set_title()
 
         for monitor in self._monitors:
             monitor.set_saved()

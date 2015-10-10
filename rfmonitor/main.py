@@ -245,17 +245,7 @@ class FrameMain(wx.Frame):
         if dlg.ShowModal() == wx.ID_CANCEL:
             return
 
-        self._filename = dlg.GetPath()
-        load_recordings(self._filename,
-                        self._settings)
-
-        self.__set_title()
-        self._toolbar.set_freq(self._settings.get_freq())
-        self.__clear_monitors()
-        self.__add_monitors()
-
-        if self._dialogTimeline is not None:
-            self._dialogTimeline.set_signals(self.__get_signals())
+        self.open(dlg.GetPath())
 
     def __on_save(self, _event):
         self.__save(False)
@@ -386,6 +376,19 @@ class FrameMain(wx.Frame):
                 return False
 
         return True
+
+    def open(self, filename):
+        load_recordings(filename,
+                        self._settings)
+
+        self._filename = filename
+        self.__set_title()
+        self._toolbar.set_freq(self._settings.get_freq())
+        self.__clear_monitors()
+        self.__add_monitors()
+
+        if self._dialogTimeline is not None:
+            self._dialogTimeline.set_signals(self.__get_signals())
 
 
 if __name__ == '__main__':

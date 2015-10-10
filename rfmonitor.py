@@ -31,7 +31,7 @@ import wx
 
 from rfmonitor.cli import Cli
 from rfmonitor.constants import APP_NAME
-from rfmonitor.main import RfMonitor, FrameMain
+from rfmonitor.gui import RfMonitor, FrameMain
 
 
 def __arguments():

@@ -38,7 +38,8 @@ def __arguments():
     parser = argparse.ArgumentParser(prog="rfmonitor.py",
                                      description='RF signal monitor')
 
-    parser.add_argument('-c', help='Command line mode', action='store_true')
+    parser.add_argument('-c', '--cli',
+                        help='Command line mode', action='store_true')
     parser.add_argument("file", nargs='?')
     args = parser.parse_args()
 

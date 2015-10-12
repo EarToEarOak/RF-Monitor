@@ -105,7 +105,7 @@ class PanelMonitor(wx.Panel):
         if not self._isSaved:
             label += '*'
         self._textSignals.SetLabel(label)
-        self._choiceFreq.Enable(signals < 1)
+        self._choiceFreq.Enable(not signals)
 
     def set_callback(self, on_del):
         self._on_del = on_del

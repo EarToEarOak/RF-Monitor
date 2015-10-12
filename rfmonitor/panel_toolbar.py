@@ -97,8 +97,10 @@ class PanelToolbar(wx.Panel):
         self._on_stop = on_stop
         self._on_add = on_add
 
-    def enable_start(self, enable):
+    def enable_freq(self, enable):
         self._numFreq.Enable(enable)
+
+    def enable_start(self, enable):
         self._choiceGain.Enable(enable)
         self._buttonStart.Enable(enable)
         self._buttonStop.Enable(not enable)

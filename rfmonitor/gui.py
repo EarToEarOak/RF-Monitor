@@ -134,53 +134,7 @@ class FrameMain(wx.Frame):
 
         self._frame.Show()
 
-    def __add_monitors(self):
-        for monitor in self._settings.get_monitors():
-            panelMonitor = PanelMonitor(self._window)
-            panelMonitor.set_callback(self.__on_del)
-            panelMonitor.set_freqs(self._freqs)
-            panelMonitor.set_enabled(monitor.enabled)
-            panelMonitor.set_freq(monitor.freq)
-            panelMonitor.set_threshold(monitor.threshold)
-            panelMonitor.set_signals(monitor.signals)
-            self.__add_monitor(panelMonitor)
-
-        if not len(self._monitors):
-            panelMonitor = PanelMonitor(self._window)
-            panelMonitor.set_callback(self.__on_del)
-            panelMonitor.set_freqs(self._freqs)
-            self.__add_monitor(panelMonitor)
-
-        self._frame.Layout()
-
-    def __add_monitor(self, monitor):
-        self._monitors.append(monitor)
-        self._sizerWindow.Add(monitor, 0, wx.ALL | wx.EXPAND, 5)
-
-    def __clear_monitors(self):
-        for _i in range(len(self._monitors)):
-            self._sizerWindow.Hide(0)
-            self._sizerWindow.Remove(0)
-
-        self._frame.Layout()
-
-        self._monitors = []
-
-    def __get_signals(self):
-        return [(monitor.get_freq(),
-                 monitor.get_signals())
-                for monitor in self._monitors]
-
-    def __is_saved(self):
-        for monitor in self._monitors:
-            if not monitor.get_saved():
-                return False
-
-        return True
-
     def __on_freq(self, freq):
-        self.__clear_monitors()
-
         _l, freqs = psd(numpy.zeros(2, dtype=numpy.complex64),
                         BINS, SAMPLE_RATE)
         freqs /= 1e6
@@ -188,11 +142,7 @@ class FrameMain(wx.Frame):
         self._freqs = freqs.tolist()
 
     def __on_start(self):
-        self._menuOpen.Enable(False)
-        self._menuSave.Enable(False)
-        self._menuSaveAs.Enable(False)
-        self._menuClear.Enable(False)
-        self._menuExit.Enable(False)
+        self.__enable_controls(False)
         if self._receive is None:
             self._receive = Receive(self._frame,
                                     self._toolbar.get_freq(),
@@ -206,11 +156,7 @@ class FrameMain(wx.Frame):
             monitor.set_recording(recording)
 
     def __on_stop(self):
-        self._menuOpen.Enable(True)
-        self._menuSave.Enable(True)
-        self._menuSaveAs.Enable(True)
-        self._menuClear.Enable(True)
-        self._menuExit.Enable(True)
+        self.__enable_controls(True)
         if self._receive is not None:
             self._receive.stop()
             self._receive = None
@@ -234,6 +180,8 @@ class FrameMain(wx.Frame):
         self._frame.Layout()
 
         self._monitors.remove(monitor)
+
+        self._toolbar.enable_freq(not len(self._monitors))
 
     def __on_open(self, _event):
         if not self.__save_warning():
@@ -414,6 +362,56 @@ class FrameMain(wx.Frame):
 
         if self._dialogTimeline is not None:
             self._dialogTimeline.set_signals(self.__get_signals())
+
+    def __enable_controls(self, enable):
+        isSaved = self.__is_saved()
+
+        self._menuOpen.Enable(enable)
+        self._menuSave.Enable(enable)
+        self._menuSaveAs.Enable(enable)
+        self._menuClear.Enable(enable and isSaved)
+        self._menuExit.Enable(enable)
+
+    def __add_monitors(self):
+        for monitor in self._settings.get_monitors():
+            panelMonitor = PanelMonitor(self._window)
+            panelMonitor.set_callback(self.__on_del)
+            panelMonitor.set_freqs(self._freqs)
+            panelMonitor.set_enabled(monitor.enabled)
+            panelMonitor.set_freq(monitor.freq)
+            panelMonitor.set_threshold(monitor.threshold)
+            panelMonitor.set_signals(monitor.signals)
+            self.__add_monitor(panelMonitor)
+
+        self._frame.Layout()
+
+    def __add_monitor(self, monitor):
+        self._toolbar.enable_freq(False)
+
+        self._monitors.append(monitor)
+        self._sizerWindow.Add(monitor, 0, wx.ALL | wx.EXPAND, 5)
+
+    def __clear_monitors(self):
+        for _i in range(len(self._monitors)):
+            self._sizerWindow.Hide(0)
+            self._sizerWindow.Remove(0)
+
+        self._frame.Layout()
+
+        self._monitors = []
+        self._toolbar.enable_freq(True)
+
+    def __get_signals(self):
+        return [(monitor.get_freq(),
+                 monitor.get_signals())
+                for monitor in self._monitors]
+
+    def __is_saved(self):
+        for monitor in self._monitors:
+            if not monitor.get_saved():
+                return False
+
+        return True
 
 
 if __name__ == '__main__':

@@ -80,9 +80,7 @@ class Server(threading.Thread):
                     self._client = None
                 sock.close()
 
-    def send(self, freq, signal):
-        data = {freq * 1e6: signal}
-
+    def send(self, data):
         if self._client is not None:
             try:
                 self._client.sendall(json.dumps(data))

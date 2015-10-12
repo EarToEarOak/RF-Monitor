@@ -33,7 +33,7 @@ import wx
 
 from rfmonitor.cli_monitor import CliMonitor
 from rfmonitor.events import Events
-from rfmonitor.file import load_recordings, save_recordings
+from rfmonitor.file import load_recordings, save_recordings, format_recording
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
@@ -140,7 +140,8 @@ class Cli(wx.EvtHandler):
                                            event['timestamp'])
 
             if update and self._server is not None:
-                self._server.send(freq, update)
+                recording = format_recording(freq, update)
+                self._server.send(recording)
 
     def __on_server_error(self, event):
         sys.stderr.write(event['msg'])

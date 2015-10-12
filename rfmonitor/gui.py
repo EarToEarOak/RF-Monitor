@@ -37,7 +37,7 @@ from rfmonitor.dialog_about import DialogAbout
 from rfmonitor.dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
 from rfmonitor.dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
 from rfmonitor.events import EVENT_THREAD, Events
-from rfmonitor.file import save_recordings, load_recordings
+from rfmonitor.file import save_recordings, load_recordings, format_recording
 from rfmonitor.panel_monitor import PanelMonitor
 from rfmonitor.panel_toolbar import XrcHandlerToolbar
 from rfmonitor.receive import Receive
@@ -288,7 +288,8 @@ class FrameMain(wx.Frame):
                 if update:
                     updated = True
                     if self._server is not None:
-                        self._server.send(freq, update)
+                        recording = format_recording(freq, update)
+                        self._server.send(recording)
 
         if self._dialogTimeline is not None and updated:
             self._dialogTimeline.set_signals(self.__get_signals())

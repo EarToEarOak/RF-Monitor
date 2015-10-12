@@ -43,7 +43,7 @@ def __arguments():
     parser.add_argument("file", nargs='?')
     args = parser.parse_args()
 
-    if args.c and args.file is None:
+    if args.cli and args.file is None:
         sys.stderr.write('Filename required in command line mode')
         exit(1)
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     args = __arguments()
 
-    if args.c:
+    if args.cli:
         cli = Cli(args.file)
     else:
         app = RfMonitor()

@@ -44,6 +44,8 @@ def __arguments():
                         help='GPS serial port')
     parser.add_argument('-b', '--baud', type=int,
                         help='GPS serial baud rate')
+    parser.add_argument('-j', '--json', action='store_true',
+                        help='Output JSON updates (suppresses other output)')
 
     parser.add_argument("file", nargs='?')
 

@@ -52,6 +52,7 @@ class Cli(wx.EvtHandler):
         self._filename = args.file
         self._gpsPort = args.port
         self._gpsBaud = args.baud
+        self._json = args.json
         self._receive = None
         self._cancel = False
 
@@ -73,14 +74,14 @@ class Cli(wx.EvtHandler):
             if not self._queue.empty():
                 self.__on_event()
 
-        print 'Exiting'
+        self.__std_out('Exiting')
         self._receive.stop()
         self.__stop_gps()
         if self._server is not None:
             self._server.stop()
 
         if not self.__is_saved():
-            print 'Saving'
+            self.__std_out('Saving')
             self.__save()
 
     def __open(self):
@@ -110,8 +111,8 @@ class Cli(wx.EvtHandler):
             self._monitors.append(cliMonitor)
 
         freqs = map(str, freqs)
-        print 'Monitors:'
-        print ', '.join(freqs) + 'MHz\n'
+        self.__std_out('Monitors:')
+        self.__std_out(', '.join(freqs) + 'MHz\n')
 
     def __start_gps(self):
         gpsDevice = GpsDevice()
@@ -131,10 +132,18 @@ class Cli(wx.EvtHandler):
         timer.start()
 
     def __start(self):
-        print 'Monitoring'
+        self.__std_out('Monitoring')
         self._receive = Receive(self._queue,
                                 self._settings.get_freq(),
                                 self._settings.get_gain())
+
+    def __std_out(self, message):
+        if not self._json:
+            sys.stdout.write(message + '\n')
+
+    def __std_err(self, message):
+        if not self._json:
+            sys.stderr.write(message + '\n')
 
     def __on_exit(self, _signal=None, _frame=None):
         signal.signal(signal.SIGINT, self._signal)
@@ -149,12 +158,12 @@ class Cli(wx.EvtHandler):
         elif event.type == Events.SERVER_ERROR:
             self.__on_server_error(event.data)
         elif event.type == Events.GPS_ERROR:
-            sys.stderr.write(event.data['msg'])
+            self.__std_err(event.data['msg'])
             self.__restart_gps()
         elif event.type == Events.GPS_WARN:
-            sys.stderr.write(event.data['msg'])
+            self.__std_err(event.data['msg'])
         elif event.type == Events.GPS_TIMEOUT:
-            sys.stderr.write(event.data['msg'])
+            self.__std_err(event.data['msg'])
             self.__restart_gps()
         elif event.type == Events.GPS_LOC:
             self._location = event.data['loc']
@@ -162,7 +171,7 @@ class Cli(wx.EvtHandler):
             time.sleep(0.01)
 
     def __on_scan_error(self, event):
-        sys.stderr.write(event['msg'])
+        self.__std_err(event['msg'])
         exit(1)
 
     def __on_scan_data(self, event):
@@ -177,12 +186,15 @@ class Cli(wx.EvtHandler):
                                            event['timestamp'],
                                            self._location)
 
-            if update and self._server is not None:
+            if update:
                 recording = format_recording(freq, update)
-                self._server.send(recording)
+                if self._server is not None:
+                    self._server.send(recording)
+                if self._json:
+                    sys.stdout.write(recording + '\n')
 
     def __on_server_error(self, event):
-        sys.stderr.write(event['msg'])
+        self.__std_err(event['msg'])
         self._server = None
 
 

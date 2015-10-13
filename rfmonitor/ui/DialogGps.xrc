@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
+    <object class="wxDialog" name="DialogGps">
+        <style>wxDEFAULT_DIALOG_STYLE</style>
+        <title>GPS Settings</title>
+        <centered>1</centered>
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+                <option>0</option>
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <object class="wxFlexGridSizer">
+                    <rows>0</rows>
+                    <cols>2</cols>
+                    <vgap>0</vgap>
+                    <hgap>0</hgap>
+                    <growablecols></growablecols>
+                    <growablerows></growablerows>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL</flag>
+                        <border>5</border>
+                        <object class="wxCheckBox" name="checkEnable">
+                            <label>Enable</label>
+                            <checked>0</checked>
+                        </object>
+                    </object>
+                    <object class="spacer">
+                        <option>1</option>
+                        <flag>wxEXPAND</flag>
+                        <border>5</border>
+                        <size>0,0</size>
+                    </object>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="text1">
+                            <label>Port</label>
+                            <wrap>-1</wrap>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL</flag>
+                        <border>5</border>
+                        <object class="wxChoice" name="choicePort">
+                            <selection>0</selection>
+                            <content />
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="text2">
+                            <label>Baud</label>
+                            <wrap>-1</wrap>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL</flag>
+                        <border>5</border>
+                        <object class="wxChoice" name="choiceBaud">
+                            <selection>0</selection>
+                            <content />
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <option>0</option>
+                <flag>wxALIGN_RIGHT|wxALL|wxEXPAND</flag>
+                <border>5</border>
+                <object class="wxStdDialogButtonSizer">
+                    <object class="button">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="wxID_OK">
+                            <label>&amp;OK</label>
+                        </object>
+                    </object>
+                    <object class="button">
+                        <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="wxID_CANCEL">
+                            <label>&amp;Cancel</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
+</resource>

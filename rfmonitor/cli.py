@@ -26,26 +26,32 @@
 import Queue
 import signal
 import sys
+from threading import Timer
 import time
 
 import numpy
 import wx
 
 from rfmonitor.cli_monitor import CliMonitor
+from rfmonitor.constants import GPS_RETRY
 from rfmonitor.events import Events
 from rfmonitor.file import load_recordings, save_recordings, format_recording
+from rfmonitor.gps import GpsDevice, Gps
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
 
 
 class Cli(wx.EvtHandler):
-    def __init__(self, filename):
+    def __init__(self, args):
         wx.EvtHandler.__init__(self)
         self._monitors = []
         self._freqs = []
+        self._location = None
         self._settings = Settings()
-        self._filename = filename
+        self._filename = args.file
+        self._gpsPort = args.port
+        self._gpsBaud = args.baud
         self._receive = None
         self._cancel = False
 
@@ -58,6 +64,9 @@ class Cli(wx.EvtHandler):
 
         self._server = Server(self._queue)
 
+        self._gps = None
+        self.__start_gps()
+
         self.__start()
 
         while not self._cancel:
@@ -66,6 +75,7 @@ class Cli(wx.EvtHandler):
 
         print 'Exiting'
         self._receive.stop()
+        self.__stop_gps()
         if self._server is not None:
             self._server.stop()
 
@@ -103,6 +113,23 @@ class Cli(wx.EvtHandler):
         print 'Monitors:'
         print ', '.join(freqs) + 'MHz\n'
 
+    def __start_gps(self):
+        gpsDevice = GpsDevice()
+        if self._gpsPort is not None:
+            gpsDevice.port = self._gpsPort
+        if self._gpsBaud is not None:
+            gpsDevice.baud = self._gpsBaud
+        if self._gpsPort is not None:
+            self._gps = Gps(self._queue, gpsDevice)
+
+    def __stop_gps(self):
+        if self._gps is not None:
+            self._gps.stop()
+
+    def __restart_gps(self):
+        timer = Timer(GPS_RETRY, self.__start_gps)
+        timer.start()
+
     def __start(self):
         print 'Monitoring'
         self._receive = Receive(self._queue,
@@ -119,8 +146,18 @@ class Cli(wx.EvtHandler):
             self.__on_scan_error(event.data)
         elif event.type == Events.SCAN_DATA:
             self.__on_scan_data(event.data)
-        if event.type == Events.SERVER_ERROR:
+        elif event.type == Events.SERVER_ERROR:
             self.__on_server_error(event.data)
+        elif event.type == Events.GPS_ERROR:
+            sys.stderr.write(event.data['msg'])
+            self.__restart_gps()
+        elif event.type == Events.GPS_WARN:
+            sys.stderr.write(event.data['msg'])
+        elif event.type == Events.GPS_TIMEOUT:
+            sys.stderr.write(event.data['msg'])
+            self.__restart_gps()
+        elif event.type == Events.GPS_LOC:
+            self._location = event.data['loc']
         else:
             time.sleep(0.01)
 
@@ -137,7 +174,8 @@ class Cli(wx.EvtHandler):
             if monitor.is_enabled():
                 index = numpy.where(freq == event['f'])[0]
                 update = monitor.set_level(levels[index][0],
-                                           event['timestamp'])
+                                           event['timestamp'],
+                                           self._location)
 
             if update and self._server is not None:
                 recording = format_recording(freq, update)

@@ -38,6 +38,8 @@ MAX_LEVELS_TIME = 300  # 5 minutes
 
 BINS = 256  # SAMPLE_RATE/BINS = 9.375kHz
 
+GPS_RETRY = 5
+
 if __name__ == '__main__':
     print 'Please run rfmonitor.py'
     exit(1)

@@ -144,11 +144,13 @@ class PanelMonitor(wx.Panel):
     def get_threshold(self):
         return self._sliderThreshold.GetValue()
 
-    def set_level(self, level, timestamp):
+    def set_level(self, level, timestamp, location):
         self._meterLevel.set_level(level)
         threshold = self._sliderThreshold.GetValue()
 
-        update, self._timestamp = set_level(self._signals, self._levels,
+        update, self._timestamp = set_level(self._signals,
+                                            self._levels,
+                                            location,
                                             self._isRecording,
                                             threshold,
                                             level,

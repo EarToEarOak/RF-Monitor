@@ -40,7 +40,13 @@ def __arguments():
 
     parser.add_argument('-c', '--cli',
                         help='Command line mode', action='store_true')
+    parser.add_argument('-p', '--port',
+                        help='GPS serial port')
+    parser.add_argument('-b', '--baud', type=int,
+                        help='GPS serial baud rate')
+
     parser.add_argument("file", nargs='?')
+
     args = parser.parse_args()
 
     if args.cli and args.file is None:
@@ -60,11 +66,12 @@ if __name__ == '__main__':
     args = __arguments()
 
     if args.cli:
-        cli = Cli(args.file)
+        cli = Cli(args)
     else:
         app = RfMonitor()
         app.SetClassName(APP_NAME)
         wx.Locale().Init2()
+
         frame = FrameMain()
         if args.file is not None:
             frame.open(args.file)

@@ -26,7 +26,7 @@
 import numpy
 
 
-def set_level(signals, levels,
+def set_level(signals, levels, location,
               isRecording, threshold, level, timestamp, lastTime):
     if isRecording:
         if lastTime is None:
@@ -36,7 +36,7 @@ def set_level(signals, levels,
             if level < threshold:
                 strength = numpy.mean(levels)
                 levels.clear()
-                signal = (lastTime, timestamp, strength)
+                signal = (lastTime, timestamp, strength, location)
                 signals.append(signal)
                 lastTime = None
                 return signal, lastTime

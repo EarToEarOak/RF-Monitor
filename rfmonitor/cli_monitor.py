@@ -49,9 +49,10 @@ class CliMonitor(object):
     def get_threshold(self):
         return self._threshold
 
-    def set_level(self, level, timestamp):
-
-        update, self._timestamp = set_level(self._signals, self._levels,
+    def set_level(self, level, timestamp, location):
+        update, self._timestamp = set_level(self._signals,
+                                            self._levels,
+                                            location,
                                             True,
                                             self._threshold,
                                             level,

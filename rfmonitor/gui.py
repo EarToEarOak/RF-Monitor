@@ -32,12 +32,15 @@ from rtlsdr.rtlsdr import RtlSdr
 from wx import xrc
 import wx
 
-from rfmonitor.constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME
+from rfmonitor.constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME, \
+    GPS_RETRY
 from rfmonitor.dialog_about import DialogAbout
+from rfmonitor.dialog_gps import DialogGps
 from rfmonitor.dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
 from rfmonitor.dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
 from rfmonitor.events import EVENT_THREAD, Events
 from rfmonitor.file import save_recordings, load_recordings, format_recording
+from rfmonitor.gps import Gps
 from rfmonitor.panel_monitor import PanelMonitor
 from rfmonitor.panel_toolbar import XrcHandlerToolbar
 from rfmonitor.receive import Receive
@@ -65,6 +68,8 @@ class FrameMain(wx.Frame):
         self._receive = None
         self._dialogTimeline = None
         self._dialogSpectrum = None
+        self._gps = None
+        self._location = None
 
         self._ui = load_ui('FrameMain.xrc')
 
@@ -99,6 +104,8 @@ class FrameMain(wx.Frame):
 
         self._server = Server(self._frame)
 
+        self.__start_gps()
+
         self._menu = self._frame.GetMenuBar()
 
         idOpen = xrc.XRCID('menuOpen')
@@ -113,6 +120,9 @@ class FrameMain(wx.Frame):
         idClear = xrc.XRCID('menuClear')
         self._menuClear = self._menu.FindItemById(idClear)
         self._frame.Bind(wx.EVT_MENU, self.__on_clear, id=idClear)
+        idGps = xrc.XRCID('menuGps')
+        self._menuGps = self._menu.FindItemById(idGps)
+        self._frame.Bind(wx.EVT_MENU, self.__on_gps, id=idGps)
         idTimeline = xrc.XRCID('menuTimeline')
         self._frame.Bind(wx.EVT_MENU, self.__on_timeline, id=idTimeline)
         self._menuTimeline = self._menu.FindItemById(idTimeline)
@@ -161,7 +171,7 @@ class FrameMain(wx.Frame):
             self._receive.stop()
             self._receive = None
         for monitor in self._monitors:
-            monitor.set_level(LEVEL_MIN, 0)
+            monitor.set_level(LEVEL_MIN, 0, None)
         if self._dialogSpectrum is not None:
             self._dialogSpectrum.clear_spectrum()
 
@@ -215,6 +225,12 @@ class FrameMain(wx.Frame):
         for monitor in self._monitors:
             monitor.clear_signals()
 
+    def __on_gps(self, _event):
+        dlg = DialogGps(self._frame, self._settings.get_gps())
+        if dlg.ShowModal() == wx.ID_OK:
+            self.__stop_gps()
+            self.__start_gps()
+
     def __on_timeline(self, event):
         if event.IsChecked() and self._dialogTimeline is None:
             self._dialogTimeline = DialogTimeline(self._frame)
@@ -253,6 +269,8 @@ class FrameMain(wx.Frame):
         if self._server is not None:
             self._server.stop()
 
+        self.__stop_gps()
+
         self.__update_settings()
         self._settings.save()
 
@@ -261,10 +279,23 @@ class FrameMain(wx.Frame):
     def __on_event(self, event):
         if event.type == Events.SCAN_ERROR:
             self.__on_scan_error(event.data)
+
         elif event.type == Events.SCAN_DATA:
             self.__on_scan_data(event.data)
-        if event.type == Events.SERVER_ERROR:
+        elif event.type == Events.SERVER_ERROR:
             self.__on_server_error(event.data)
+        elif event.type == Events.GPS_ERROR:
+            self._status.SetStatusText(event.data['msg'], 1)
+            self.__restart_gps()
+        elif event.type == Events.GPS_WARN:
+            self._status.SetStatusText(event.data['msg'], 1)
+        elif event.type == Events.GPS_TIMEOUT:
+            self._status.SetStatusText(event.data['msg'], 1)
+            self.__restart_gps()
+        elif event.type == Events.GPS_LOC:
+            self._location = event.data['loc']
+            loc = '{:9.5f}, {:9.5f}'.format(*self._location)
+            self._status.SetStatusText(loc, 1)
 
     def __on_scan_error(self, event):
         wx.MessageBox(event['msg'],
@@ -284,7 +315,8 @@ class FrameMain(wx.Frame):
             if monitor.is_enabled():
                 index = numpy.where(freq == event['f'])[0]
                 update = monitor.set_level(levels[index][0],
-                                           event['timestamp'])
+                                           event['timestamp'],
+                                           self._location)
                 if update:
                     updated = True
                     if self._server is not None:
@@ -371,6 +403,7 @@ class FrameMain(wx.Frame):
         self._menuSave.Enable(enable)
         self._menuSaveAs.Enable(enable)
         self._menuClear.Enable(enable and isSaved)
+        self._menuGps.Enable(enable)
         self._menuExit.Enable(enable)
 
     def __add_monitors(self):
@@ -413,6 +446,20 @@ class FrameMain(wx.Frame):
                 return False
 
         return True
+
+    def __start_gps(self):
+        self._status.SetStatusText('Staring GPS...', 1)
+        if self._gps is None and self._settings.get_gps().enabled:
+            self._gps = Gps(self._frame, self._settings.get_gps())
+
+    def __stop_gps(self):
+        if self._gps is not None:
+            self._gps.stop()
+            self._gps = None
+
+    def __restart_gps(self):
+        self.__stop_gps()
+        wx.CallLater(GPS_RETRY * 1000, self.__start_gps)
 
 
 if __name__ == '__main__':

@@ -33,7 +33,9 @@ EVENT_THREAD = wx.NewId()
 
 
 class Events(object):
-    SCAN_ERROR, SCAN_DATA, SERVER_ERROR = range(3)
+    SCAN_ERROR, SCAN_DATA, \
+        SERVER_ERROR, \
+        GPS_ERROR, GPS_WARN, GPS_TIMEOUT, GPS_LOC, GPS_SATS = range(8)
 
 
 class Event(wx.PyEvent):

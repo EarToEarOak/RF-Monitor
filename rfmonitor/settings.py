@@ -25,6 +25,8 @@
 
 import wx
 
+from rfmonitor.gps import GpsDevice
+
 
 class Settings(object):
     class Monitor(object):
@@ -40,6 +42,7 @@ class Settings(object):
         self._freq = 118.0
         self._gain = 0
         self._monitors = []
+        self._gps = GpsDevice()
 
         self.__load()
 
@@ -47,6 +50,15 @@ class Settings(object):
         self._config.SetPath('/')
         self._freq = self._config.ReadFloat('frequency', self._freq)
         self._gain = self._config.ReadFloat('gain', self._gain)
+
+        self._config.SetPath('/Gps')
+        self._gps.enabled = self._config.ReadBool('enabled', self._gps.enabled)
+        self._gps.port = self._config.Read('port', self._gps.port)
+        self._gps.baud = self._config.ReadInt('baud', self._gps.baud)
+        self._gps.bits = self._config.ReadInt('bits', self._gps.bits)
+        self._gps.parity = self._config.Read('parity', self._gps.parity)
+        self._gps.stops = self._config.ReadInt('stops', self._gps.stops)
+        self._gps.soft = self._config.ReadBool('soft', self._gps.soft)
 
         self._config.SetPath('/Monitors')
         group = self._config.GetFirstGroup()
@@ -87,10 +99,22 @@ class Settings(object):
     def get_monitors(self):
         return self._monitors
 
+    def get_gps(self):
+        return self._gps
+
     def save(self):
         self._config.SetPath('/')
         self._config.WriteFloat('frequency', self._freq)
         self._config.WriteFloat('gain', self._gain)
+
+        self._config.SetPath('/Gps')
+        self._config.WriteBool('enabled', self._gps.enabled)
+        self._config.Write('port', self._gps.port)
+        self._config.WriteInt('baud', self._gps.baud)
+        self._config.WriteInt('bits', self._gps.bits)
+        self._config.Write('parity', self._gps.parity)
+        self._config.WriteInt('stops', self._gps.stops)
+        self._config.WriteBool('soft', self._gps.soft)
 
         for i in range(len(self._monitors)):
             self._config.SetPath('/Monitors/' + str(i))

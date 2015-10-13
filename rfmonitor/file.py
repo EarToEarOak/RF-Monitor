@@ -78,11 +78,14 @@ def format_recording(freq, recording):
     start = recording[0]
     end = recording[1]
     level = recording[2]
+    location = recording[3]
 
     record = OrderedDict()
     record['Start'] = start
     record['End'] = end
     record['Level'] = level
+    if location is not None:
+        record['location'] = location
 
     signal = OrderedDict()
     signal['Frequency'] = int(freq)

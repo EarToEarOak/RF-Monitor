@@ -57,8 +57,8 @@ class DialogSpectrum(wx.Dialog):
         self.PostCreate(pre)
 
         self._panelPlot = xrc.XRCCTRL(pre, 'panelPlot')
-        self._button_Close = xrc.XRCCTRL(pre, 'buttonClose')
-        self.Bind(wx.EVT_BUTTON, self.__on_close, self._button_Close)
+        self._buttonClose = xrc.XRCCTRL(pre, 'buttonClose')
+        self.Bind(wx.EVT_BUTTON, self.__on_close, self._buttonClose)
 
         self.Bind(wx.EVT_CLOSE, self.__on_close)
 

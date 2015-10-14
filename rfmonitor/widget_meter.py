@@ -57,7 +57,7 @@ class WidgetMeter(wx.Panel):
         x = self.__scale_x(self._value, w)
         dc.DrawRectangle(0, 0, x, h)
 
-        dc.SetPen(wx.Pen(wx.BLACK))
+        dc.SetPen(wx.GREY_PEN)
         ticks = range(LEVEL_MIN, LEVEL_MAX, 10)
         for tick in ticks:
             if tick not in [LEVEL_MIN, LEVEL_MAX]:
@@ -68,6 +68,12 @@ class WidgetMeter(wx.Panel):
                 label = str(tick)
                 tW, tH = dc.GetTextExtent(label)
                 dc.DrawText(label, x - tW / 2, (h - tH) / 2)
+        ticks = range(LEVEL_MIN, LEVEL_MAX, 1)
+        for tick in ticks:
+            if tick not in [LEVEL_MIN, LEVEL_MAX]:
+                x = self.__scale_x(tick, w)
+                dc.DrawLine(x, 0, x, 2.5)
+                dc.DrawLine(x, h, x, h - 2.5)
 
         dc.SetPen(wx.Pen(wx.BLUE, 2, wx.LONG_DASH))
         x = self.__scale_x(self._threshold, w)

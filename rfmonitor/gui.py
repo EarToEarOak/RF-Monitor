@@ -448,8 +448,8 @@ class FrameMain(wx.Frame):
         return True
 
     def __start_gps(self):
-        self._status.SetStatusText('Staring GPS...', 1)
         if self._gps is None and self._settings.get_gps().enabled:
+            self._status.SetStatusText('Staring GPS...', 1)
             self._gps = Gps(self._frame, self._settings.get_gps())
 
     def __stop_gps(self):

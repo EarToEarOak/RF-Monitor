@@ -56,7 +56,9 @@
 						<option>0</option>
 						<flag>wxALL|wxEXPAND</flag>
 						<border>5</border>
-						<object class="WidgetMeter" name="meterLevel" />
+						<object class="WidgetMeter" name="meterLevel">
+						<tooltip>Signal level (dB)</tooltip>
+						</object>
 					</object>
 					<object class="sizeritem">
 						<option>0</option>

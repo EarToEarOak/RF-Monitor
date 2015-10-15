@@ -318,13 +318,13 @@ class FrameMain(wx.Frame):
             freq = monitor.get_freq()
             if monitor.is_enabled():
                 index = numpy.where(freq == event['f'])[0]
-                update = monitor.set_level(levels[index][0],
+                signal = monitor.set_level(levels[index][0],
                                            event['timestamp'],
                                            self._location)
-                if update:
+                if signal is not None:
                     updated = True
-                    if self._server is not None:
-                        recording = format_recording(freq, update)
+                    if signal.end is not None and self._server is not None:
+                        recording = format_recording(freq, signal)
                         self._server.send(recording)
 
         if self._dialogTimeline is not None and updated:

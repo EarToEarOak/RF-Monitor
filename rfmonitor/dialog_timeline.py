@@ -142,9 +142,11 @@ class DialogTimeline(wx.Dialog):
                 if len(signals):
                     hasData = True
                 barsX = []
-                for start, end, _level, _location in signals:
-                    tStart = epoch2num(start)
-                    tEnd = epoch2num(end)
+                for signal in signals:
+                    if signal.end is None:
+                        print'dfdsf'
+                    tStart = epoch2num(signal.start)
+                    tEnd = epoch2num(signal.end)
                     barsX.append([tStart, tEnd - tStart])
                 colour = self._axes._get_lines.color_cycle.next()
                 self._axes.broken_barh(barsX, [freq - height / 2, height],

@@ -27,6 +27,7 @@ from collections import OrderedDict
 import json
 
 from rfmonitor.constants import APP_NAME
+from rfmonitor.signal import Signal
 
 
 VERSION = 1
@@ -40,7 +41,8 @@ def save_recordings(filename, settings):
         jsonMonitor['Enabled'] = monitor.enabled
         jsonMonitor['Frequency'] = int(monitor.freq * 1e6)
         jsonMonitor['Threshold'] = monitor.threshold
-        jsonMonitor['Signals'] = monitor.signals
+        jsonMonitor['Signals'] = [signal.to_list()
+                                  for signal in monitor.signals]
         jsonMonitors.append(jsonMonitor)
 
     fileData = OrderedDict()
@@ -67,28 +69,23 @@ def load_recordings(filename, settings):
 
     settings.clear_monitors()
     for monitor in monitors:
+        signals = [Signal().from_list(signal) for signal in monitor['Signals']]
         settings.add_monitor(monitor['Enabled'],
                              monitor['Frequency'] / 1e6,
                              monitor['Threshold'],
-                             monitor['Signals'])
+                             signals)
 
 
 def format_recording(freq, recording):
-    freq = freq * 1e6
-    start = recording[0]
-    end = recording[1]
-    level = recording[2]
-    location = recording[3]
-
     record = OrderedDict()
-    record['Start'] = start
-    record['End'] = end
-    record['Level'] = level
-    if location is not None:
-        record['location'] = location
+    record['Start'] = recording.start
+    record['End'] = recording.end
+    record['Level'] = recording.level
+    if recording.location is not None:
+        record['location'] = recording.location
 
     signal = OrderedDict()
-    signal['Frequency'] = int(freq)
+    signal['Frequency'] = int(freq * 1e6)
     signal['Signal'] = record
 
     return json.dumps(signal)

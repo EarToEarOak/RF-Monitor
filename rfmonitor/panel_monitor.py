@@ -151,7 +151,7 @@ class PanelMonitor(wx.Panel):
         self._meterLevel.set_level(level)
         threshold = self._sliderThreshold.GetValue()
 
-        update, self._timestamp = set_level(self._signals,
+        signal, self._timestamp = set_level(self._signals,
                                             self._levels,
                                             location,
                                             self._isRecording,
@@ -159,11 +159,11 @@ class PanelMonitor(wx.Panel):
                                             level,
                                             timestamp,
                                             self._timestamp)
-        if update:
+        if signal is not None:
             self._isSaved = False
             self.__set_signals()
 
-        return update
+        return signal
 
     def set_recording(self, isRecording):
         self._isRecording = isRecording

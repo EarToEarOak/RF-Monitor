@@ -23,27 +23,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import numpy
 
-from rfmonitor.signal import Signal
+class Signal(object):
+    def __init__(self=None, start=None, end=None, level=None, location=None):
+        self.start = start
+        self.end = end
+        self.level = level
+        self.location = location
 
-def set_level(signals, levels, location,
-              isRecording, threshold, level, timestamp, lastTime):
-    if isRecording:
-        if lastTime is None:
-            if level >= threshold:
-                lastTime = timestamp
-        else:
-            if level < threshold:
-                strength = numpy.mean(levels)
-                levels.clear()
-                signal = Signal(lastTime, timestamp, strength, location)
-                signals.append(signal)
-                lastTime = None
-                return signal, lastTime
-        if level >= threshold:
-            levels.append(level)
-    return None, lastTime
+    @staticmethod
+    def from_list(signal):
+        return Signal(*signal)
+
+    def to_list(self):
+        return [self.start, self.end, self.level, self.location]
 
 
 if __name__ == '__main__':

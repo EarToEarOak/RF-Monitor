@@ -103,6 +103,7 @@
 				<border>5</border>
 				<object class="wxButton" name="buttonAdd">
 					<tooltip>Add monitor</tooltip>
+					<style>wxBU_EXACTFIT</style>
 					<label>+</label>
 					<default>0</default>
 				</object>

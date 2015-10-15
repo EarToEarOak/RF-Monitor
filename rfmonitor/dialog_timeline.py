@@ -137,9 +137,12 @@ class DialogTimeline(wx.Dialog):
             self._axes.set_color_cycle(None)
 
             self.__clear_plots()
+            hasData = False
             for freq, signals in allSignals:
+                if len(signals):
+                    hasData = True
                 barsX = []
-                for start, end, _level in signals:
+                for start, end, _level, _location in signals:
                     tStart = epoch2num(start)
                     tEnd = epoch2num(end)
                     barsX.append([tStart, tEnd - tStart])
@@ -148,6 +151,10 @@ class DialogTimeline(wx.Dialog):
                                        color=colour,
                                        gid='plot')
                 self._axes.axhspan(freq, freq, color=colour)
+
+            if not hasData:
+                now = epoch2num(time.time())
+                self._axes.set_xlim(now, now + 1)
 
             self._axes.get_figure().autofmt_xdate()
             self._axes.relim()

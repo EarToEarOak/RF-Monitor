@@ -40,6 +40,7 @@ class PanelMonitor(wx.Panel):
         self._parent = parent
         self._isRecording = False
         self._isSaved = True
+        self._freq = None
         self._timestamp = None
         self._signals = []
         levelsLength = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
@@ -127,15 +128,17 @@ class PanelMonitor(wx.Panel):
         freqs = map(float, self._choiceFreq.GetItems())
         try:
             self._choiceFreq.SetSelection(freqs.index(freq))
+            self._freq = freq
         except ValueError:
             self._choiceFreq.SetSelection(len(freqs) / 2)
+            index = self._choiceFreq.GetSelection()
+            self._freq = float(self._choiceFreq.GetItems()[index])
         self._signals = []
         self._isSaved = True
         self.__set_signals()
 
     def get_freq(self):
-        index = self._choiceFreq.GetSelection()
-        return float(self._choiceFreq.GetItems()[index])
+        return self._freq
 
     def set_threshold(self, threshold):
         self._meterLevel.set_threshold(threshold)

@@ -85,10 +85,14 @@ class FrameMain(wx.Frame):
 
         self._sizerWindow = self._window.GetSizer()
 
-        sdr = RtlSdr()
-        gains = sdr.get_gains()
-        gains = [float(gain) / 10. for gain in gains]
-        sdr.close()
+        try:
+            sdr = RtlSdr()
+            gains = sdr.get_gains()
+            gains = [float(gain) / 10. for gain in gains]
+            sdr.close()
+        except IOError:
+            wx.MessageBox('No radio found', APP_NAME, wx.OK | wx.ICON_ERROR)
+            exit(1)
 
         self._toolbar.set_callbacks(self.__on_freq,
                                     self.__on_start,

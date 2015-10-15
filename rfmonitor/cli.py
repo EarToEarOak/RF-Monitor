@@ -172,7 +172,7 @@ class Cli(wx.EvtHandler):
 
     def __on_scan_error(self, event):
         self.__std_err(event['msg'])
-        exit(1)
+        self._cancel = True
 
     def __on_scan_data(self, event):
         levels = numpy.log10(event['l'])

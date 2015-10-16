@@ -59,7 +59,12 @@ class Cli(wx.EvtHandler):
         self._queue = Queue.Queue()
 
         self.__open()
+
+        self.__std_out('Frequency: {}MHz'.format(self._settings.get_freq()))
+        self.__std_out('Gain: {}dB\n'.format(self._settings.get_gain()))
+
         self.__add_monitors()
+        self._signalCount = self.__count_signals()
 
         self._signal = signal.signal(signal.SIGINT, self.__on_exit)
 
@@ -117,6 +122,13 @@ class Cli(wx.EvtHandler):
         self.__std_out('Monitors:')
         self.__std_out(', '.join(freqs) + 'MHz\n')
 
+    def __count_signals(self):
+        signals = 0
+        for monitor in self._monitors:
+            signals += len(monitor.get_signals())
+
+        return signals
+
     def __start_gps(self):
         gpsDevice = GpsDevice()
         if self._gpsPort is not None:
@@ -135,16 +147,16 @@ class Cli(wx.EvtHandler):
         timer.start()
 
     def __start(self):
-        self.__std_out('Monitoring:')
-        self.__std_out('Base frequency: {}MHz'.format(self._settings.get_freq()))
-        self.__std_out('Gain: {}dB'.format(self._settings.get_gain()))
+        self.__std_out('Monitoring...')
         self._receive = Receive(self._queue,
                                 self._settings.get_freq(),
                                 self._settings.get_gain())
 
-    def __std_out(self, message):
+    def __std_out(self, message, lf=True):
         if not self._json:
-            sys.stdout.write(message + '\n')
+            if lf:
+                message += '\n'
+            sys.stdout.write(message)
 
     def __std_err(self, message):
         if not self._json:
@@ -192,6 +204,9 @@ class Cli(wx.EvtHandler):
                                            self._location)
 
             if signal is not None:
+                signals = 'Signals: {}\r'.format(self.__count_signals() \
+                                                 - self._signalCount)
+                self.__std_out(signals, False)
                 if signal.end is not None:
                     recording = format_recording(freq, signal)
                     if self._server is not None:

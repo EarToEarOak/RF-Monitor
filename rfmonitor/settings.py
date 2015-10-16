@@ -60,18 +60,6 @@ class Settings(object):
         self._gps.stops = self._config.ReadInt('stops', self._gps.stops)
         self._gps.soft = self._config.ReadBool('soft', self._gps.soft)
 
-        self._config.SetPath('/Monitors')
-        group = self._config.GetFirstGroup()
-        while group[0]:
-            self._config.SetPath('/Monitors/' + group[1])
-            monitor = Settings.Monitor()
-            monitor.enabled = self._config.ReadBool('enabled', 0)
-            monitor.freq = self._config.ReadInt('frequency', 0) / 1e6
-            monitor.threshold = self._config.ReadFloat('threshold', 0)
-            self._monitors.append(monitor)
-            self._config.SetPath("/Monitors")
-            group = self._config.GetNextGroup(group[2])
-
     def set_freq(self, freq):
         self._freq = freq
 
@@ -115,12 +103,6 @@ class Settings(object):
         self._config.Write('parity', self._gps.parity)
         self._config.WriteInt('stops', self._gps.stops)
         self._config.WriteBool('soft', self._gps.soft)
-
-        for i in range(len(self._monitors)):
-            self._config.SetPath('/Monitors/' + str(i))
-            self._config.WriteBool('enabled', self._monitors[i].enabled)
-            self._config.WriteInt('frequency', self._monitors[i].freq * 1e6)
-            self._config.WriteFloat('threshold', self._monitors[i].threshold)
 
 
 if __name__ == '__main__':

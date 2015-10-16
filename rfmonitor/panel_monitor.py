@@ -39,9 +39,9 @@ class PanelMonitor(wx.Panel):
     def __init__(self, parent):
         self._parent = parent
         self._isRecording = False
-        self._isSaved = True
         self._freq = None
         self._signals = []
+        self._isRunning = False
         levelsLength = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
         self._levels = collections.deque(maxlen=round(levelsLength))
 
@@ -79,33 +79,39 @@ class PanelMonitor(wx.Panel):
         self.Bind(wx.EVT_CHECKBOX, self.__on_enable, self._checkEnable)
         self.Bind(wx.EVT_BUTTON, self.__on_del, self._buttonDel)
 
-    def __on_freq(self, _event):
-        self.set_freq(self.get_freq())
+    def __on_freq(self, event):
+        self._freq = float(event.GetString())
 
     def __on_threshold(self, _event):
         threshold = self._sliderThreshold.GetValue()
         self._meterLevel.set_threshold(threshold)
 
     def __on_enable(self, _event):
-        self._buttonDel.Enable(not self.is_enabled())
+        enabled = self.is_enabled()
+        self._buttonDel.Enable(not enabled)
+        self.__enable_freq()
+        if not enabled:
+            self._meterLevel.set_level(LEVEL_MIN)
 
     def __on_del(self, _event):
-        if not self.get_saved():
+        if len(self._signals):
             resp = wx.MessageBox('''Remove monitor?\n'''
-                                 '''The recording on this channel will be lost''',
+                                 '''The recording on this monitor will be lost''',
                                  'Warning',
                                  wx.OK | wx.CANCEL | wx.ICON_WARNING)
             if resp != wx.OK:
                 return
         self._on_del(self)
 
+    def __enable_freq(self):
+        self._choiceFreq.Enable(not self._isRecording \
+                                and not len(self._signals))
+
     def __set_signals(self):
         signals = len(self._signals)
         label = 'Recorded: {:4d}'.format(signals)
-        if not self._isSaved:
-            label += '*'
         self._textSignals.SetLabel(label)
-        self._choiceFreq.Enable(not signals)
+        self.__enable_freq()
 
     def set_callback(self, on_del):
         self._on_del = on_del
@@ -121,6 +127,8 @@ class PanelMonitor(wx.Panel):
         freqs = map(str, freqs)
         self._choiceFreq.Clear()
         self._choiceFreq.AppendItems(freqs)
+        index = len(freqs) / 2
+        self._freq = float(freqs[index])
         self._choiceFreq.SetSelection(len(freqs) / 2)
 
     def set_freq(self, freq):
@@ -133,7 +141,6 @@ class PanelMonitor(wx.Panel):
             index = self._choiceFreq.GetSelection()
             self._freq = float(self._choiceFreq.GetItems()[index])
         self._signals = []
-        self._isSaved = True
         self.__set_signals()
 
     def get_freq(self):
@@ -159,13 +166,13 @@ class PanelMonitor(wx.Panel):
                            timestamp)
 
         if signal is not None:
-            self._isSaved = False
             self.__set_signals()
 
         return signal
 
     def set_recording(self, isRecording):
         self._isRecording = isRecording
+        self.__enable_freq()
 
     def set_signals(self, signals):
         self._signals = signals
@@ -176,15 +183,7 @@ class PanelMonitor(wx.Panel):
 
     def clear_signals(self):
         self._signals = []
-        self._isSaved = True
         self.__set_signals()
-
-    def set_saved(self):
-        self._isSaved = True
-        self.__set_signals()
-
-    def get_saved(self):
-        return self._isSaved
 
 
 if __name__ == '__main__':

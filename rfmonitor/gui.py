@@ -71,6 +71,7 @@ class FrameMain(wx.Frame):
         self._dialogSpectrum = None
         self._gps = None
         self._location = None
+        self._isSaved = True
 
         self._ui = load_ui('FrameMain.xrc')
 
@@ -140,6 +141,8 @@ class FrameMain(wx.Frame):
         idAbout = xrc.XRCID('menuAbout')
         self._frame.Bind(wx.EVT_MENU, self.__on_about, id=idAbout)
 
+        self.__enable_controls(True)
+
         self._frame.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
         self._frame.Bind(EVT_SPECTRUM_CLOSE, self.__on_spectrum_close)
 
@@ -191,7 +194,12 @@ class FrameMain(wx.Frame):
         monitor.set_freqs(self._freqs)
         self.__add_monitor(monitor)
 
+        self._toolbar.enable_freq(False)
+
         self._frame.Layout()
+
+        self._isSaved = False
+        self.__set_title()
 
     def __on_del(self, monitor):
         index = self._monitors.index(monitor)
@@ -202,6 +210,9 @@ class FrameMain(wx.Frame):
         self._monitors.remove(monitor)
 
         self._toolbar.enable_freq(not len(self._monitors))
+
+        self._isSaved = False
+        self.__set_title()
 
     def __on_open(self, _event):
         if not self.__save_warning():
@@ -220,6 +231,9 @@ class FrameMain(wx.Frame):
 
         self.open(dlg.GetPath())
 
+        self._isSaved = True
+        self.__set_title()
+
     def __on_save(self, _event):
         self.__save(False)
 
@@ -234,6 +248,9 @@ class FrameMain(wx.Frame):
 
         for monitor in self._monitors:
             monitor.clear_signals()
+
+        self._isSaved = False
+        self.__set_title()
 
     def __on_gps(self, _event):
         dlg = DialogGps(self._frame, self._settings.get_gps())
@@ -334,7 +351,11 @@ class FrameMain(wx.Frame):
                         self._server.send(recording)
 
         if updated:
-            self.__set_timeline()
+            if self._isSaved:
+                self._isSaved = False
+                self.__set_title()
+
+                self.__set_timeline()
 
         if self._dialogSpectrum is not None:
             self._dialogSpectrum.set_spectrum(self._freqs,
@@ -350,6 +371,8 @@ class FrameMain(wx.Frame):
         if self._filename is not None:
             _head, tail = os.path.split(self._filename)
             title += ' - ' + tail
+        if not self._isSaved:
+            title += '*'
         self._frame.SetTitle(title)
 
     def __update_settings(self):
@@ -381,12 +404,12 @@ class FrameMain(wx.Frame):
                         self._settings)
         self.__set_title()
 
-        for monitor in self._monitors:
-            monitor.set_saved()
+        self._isSaved = True
+        self.__set_title()
 
     def __save_warning(self):
-        if not self.__is_saved():
-            resp = wx.MessageBox('Data is not saved, continue?', 'Warning',
+        if not self._isSaved:
+            resp = wx.MessageBox('Not saved, continue?', 'Warning',
                                  wx.OK | wx.CANCEL | wx.ICON_WARNING)
             if resp != wx.OK:
                 return False
@@ -402,16 +425,14 @@ class FrameMain(wx.Frame):
         self._toolbar.set_freq(self._settings.get_freq())
         self.__clear_monitors()
         self.__add_monitors()
-
+        self.__enable_controls(True)
         self.__set_timeline()
 
     def __enable_controls(self, enable):
-        isSaved = self.__is_saved()
-
         self._menuOpen.Enable(enable)
         self._menuSave.Enable(enable)
         self._menuSaveAs.Enable(enable)
-        self._menuClear.Enable(enable and isSaved)
+        self._menuClear.Enable(enable and self.__has_recordings())
         self._menuGps.Enable(enable)
         self._menuExit.Enable(enable)
 
@@ -443,6 +464,14 @@ class FrameMain(wx.Frame):
 
         self._monitors = []
         self._toolbar.enable_freq(True)
+        self._isSaved = False
+
+    def __has_recordings(self):
+        for monitor in self._monitors:
+            if len(monitor.get_signals()):
+                return True
+
+        return False
 
     def __set_timeline(self):
         if self._dialogTimeline is not None:
@@ -453,13 +482,6 @@ class FrameMain(wx.Frame):
 
             self._dialogTimeline.set_signals(signals,
                                              self._toolbar.is_recording())
-
-    def __is_saved(self):
-        for monitor in self._monitors:
-            if not monitor.get_saved():
-                return False
-
-        return True
 
     def __start_gps(self):
         if self._gps is None and self._settings.get_gps().enabled:

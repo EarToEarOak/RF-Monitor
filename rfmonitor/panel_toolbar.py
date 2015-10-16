@@ -33,6 +33,8 @@ from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 class PanelToolbar(wx.Panel):
     def __init__(self, parent):
+        self._parent = parent
+
         pre = wx.PrePanel()
         self._ui = load_ui('PanelToolbar.xrc')
 

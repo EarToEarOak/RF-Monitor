@@ -135,9 +135,9 @@ class Cli(wx.EvtHandler):
         timer.start()
 
     def __start(self):
-        self.__std_out('Monitoring starting with:')
-        self.__std_out('Base frequancy: %s'% self._settings.get_freq()
-        self.__std_out('Gain: %s' % self._settings.get_gain()
+        self.__std_out('Monitoring:')
+        self.__std_out('Base frequency: {}MHz'.format(self._settings.get_freq()))
+        self.__std_out('Gain: {}dB'.format(self._settings.get_gain()))
         self._receive = Receive(self._queue,
                                 self._settings.get_freq(),
                                 self._settings.get_gain())

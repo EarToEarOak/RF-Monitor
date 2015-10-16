@@ -97,6 +97,9 @@ class PanelToolbar(wx.Panel):
         self._on_stop = on_stop
         self._on_add = on_add
 
+    def is_recording(self):
+        return self._buttonRec.GetValue()
+
     def enable_freq(self, enable):
         self._numFreq.Enable(enable)
 

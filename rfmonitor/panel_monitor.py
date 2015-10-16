@@ -41,7 +41,6 @@ class PanelMonitor(wx.Panel):
         self._isRecording = False
         self._isSaved = True
         self._freq = None
-        self._timestamp = None
         self._signals = []
         levelsLength = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
         self._levels = collections.deque(maxlen=round(levelsLength))
@@ -151,14 +150,14 @@ class PanelMonitor(wx.Panel):
         self._meterLevel.set_level(level)
         threshold = self._sliderThreshold.GetValue()
 
-        signal, self._timestamp = set_level(self._signals,
-                                            self._levels,
-                                            location,
-                                            self._isRecording,
-                                            threshold,
-                                            level,
-                                            timestamp,
-                                            self._timestamp)
+        signal = set_level(self._signals,
+                           self._levels,
+                           location,
+                           self._isRecording,
+                           threshold,
+                           level,
+                           timestamp)
+
         if signal is not None:
             self._isSaved = False
             self.__set_signals()
@@ -177,7 +176,6 @@ class PanelMonitor(wx.Panel):
 
     def clear_signals(self):
         self._signals = []
-        self._timestamp = None
         self._isSaved = True
         self.__set_signals()
 

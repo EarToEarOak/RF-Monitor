@@ -25,6 +25,7 @@
 
 import os
 import sys
+import time
 
 from matplotlib.mlab import psd
 import numpy
@@ -166,8 +167,13 @@ class FrameMain(wx.Frame):
         if recording:
             self.__on_start()
 
+        timestamp = time.time()
         for monitor in self._monitors:
+            if not recording:
+                monitor.set_level(None, timestamp, None)
             monitor.set_recording(recording)
+
+        self.__set_timeline()
 
     def __on_stop(self):
         self.__enable_controls(True)
@@ -238,7 +244,7 @@ class FrameMain(wx.Frame):
     def __on_timeline(self, event):
         if event.IsChecked() and self._dialogTimeline is None:
             self._dialogTimeline = DialogTimeline(self._frame)
-            self._dialogTimeline.set_signals(self.__get_signals())
+            self.__set_timeline()
             self._dialogTimeline.Show()
         elif self._dialogTimeline is not None:
             self._dialogTimeline.Destroy()
@@ -327,8 +333,8 @@ class FrameMain(wx.Frame):
                         recording = format_recording(freq, signal)
                         self._server.send(recording)
 
-        if self._dialogTimeline is not None and updated:
-            self._dialogTimeline.set_signals(self.__get_signals())
+        if updated:
+            self.__set_timeline()
 
         if self._dialogSpectrum is not None:
             self._dialogSpectrum.set_spectrum(self._freqs,
@@ -397,8 +403,7 @@ class FrameMain(wx.Frame):
         self.__clear_monitors()
         self.__add_monitors()
 
-        if self._dialogTimeline is not None:
-            self._dialogTimeline.set_signals(self.__get_signals())
+        self.__set_timeline()
 
     def __enable_controls(self, enable):
         isSaved = self.__is_saved()
@@ -439,10 +444,15 @@ class FrameMain(wx.Frame):
         self._monitors = []
         self._toolbar.enable_freq(True)
 
-    def __get_signals(self):
-        return [(monitor.get_freq(),
-                 monitor.get_signals())
-                for monitor in self._monitors]
+    def __set_timeline(self):
+        if self._dialogTimeline is not None:
+            signals = [(monitor.get_freq(),
+                        monitor.get_signals())
+                       for monitor in self._monitors
+                       if monitor.is_enabled()]
+
+            self._dialogTimeline.set_signals(signals,
+                                             self._toolbar.is_recording())
 
     def __is_saved(self):
         for monitor in self._monitors:

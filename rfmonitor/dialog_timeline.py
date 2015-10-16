@@ -38,7 +38,7 @@ from matplotlib.ticker import ScalarFormatter, AutoMinorLocator
 from wx import xrc
 import wx.lib.newevent
 
-from rfmonitor.constants import MAX_TIMELINE_FPS, BINS, SAMPLE_RATE
+from rfmonitor.constants import BINS, SAMPLE_RATE, MAX_TIMELINE_FPS, TIMELINE_FPS
 from rfmonitor.ui import load_ui
 
 
@@ -54,6 +54,7 @@ class DialogTimeline(wx.Dialog):
         self._delayDraw = 1. / MAX_TIMELINE_FPS
         self._axes = None
         self._canvas = None
+        self._signals = []
 
         pre = wx.PreDialog()
         self._ui = load_ui('DialogTimeline.xrc')
@@ -74,6 +75,9 @@ class DialogTimeline(wx.Dialog):
         sizer.Add(self._toolbar, 0, wx.LEFT | wx.EXPAND)
         self.Fit()
 
+        self._timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.__on_timer, self._timer)
+
     def __setup_plot(self):
         figure = Figure()
 
@@ -81,7 +85,6 @@ class DialogTimeline(wx.Dialog):
         self._axes.set_title('Timeline')
         self._axes.set_xlabel('Time')
         self._axes.set_ylabel('Frequency (MHz)')
-        self._axes.autoscale(True)
         self._axes.grid(True)
         locator = AutoDateLocator()
         formatter = AutoDateFormatter(locator)
@@ -108,6 +111,9 @@ class DialogTimeline(wx.Dialog):
         self._toolbar.AddControl(self._textFreq)
         self._toolbar.Realize()
 
+    def __on_timer(self, _event):
+        self.set_signals(self._signals, True)
+
     def __on_motion(self, event):
         label = ''
         if event.xdata is not None and event.xdata >= 1:
@@ -126,40 +132,62 @@ class DialogTimeline(wx.Dialog):
             if gid is not None and gid == 'plot':
                 child.remove()
 
-    def set_signals(self, allSignals):
+    def set_signals(self, allSignals, isLive):
+        self._timer.Stop()
+        self._signals = allSignals
+
         timestamp = time.time()
         if timestamp - self._timestamp > self._delayDraw:
             t1 = time.time()
             self._timestamp = timestamp
+
+            tMin = None
+            tMax = None
 
             height = SAMPLE_RATE / BINS
             height /= 1e6
             self._axes.set_color_cycle(None)
 
             self.__clear_plots()
-            hasData = False
+            timeNow = epoch2num(time.time())
             for freq, signals in allSignals:
-                if len(signals):
-                    hasData = True
-                barsX = []
+
+                bars = []
                 for signal in signals:
-                    if signal.end is None:
-                        print'dfdsf'
                     tStart = epoch2num(signal.start)
-                    tEnd = epoch2num(signal.end)
-                    barsX.append([tStart, tEnd - tStart])
+                    if signal.end is not None:
+                        tEnd = epoch2num(signal.end)
+                    else:
+                        tEnd = timeNow
+                    tMin = min(tMin, tStart)
+                    tMax = max(tMax, tEnd)
+
+                    bars.append([tStart, tEnd - tStart])
+
                 colour = self._axes._get_lines.color_cycle.next()
-                self._axes.broken_barh(barsX, [freq - height / 2, height],
+                self._axes.broken_barh(bars, [freq - height / 2, height],
                                        color=colour,
                                        gid='plot')
-                self._axes.axhspan(freq, freq, color=colour)
+                self._axes.axhline(freq,
+                                   color=colour,
+                                   gid='plot')
 
-            if not hasData:
-                now = epoch2num(time.time())
-                self._axes.set_xlim(now, now + 1)
+            if isLive:
+                tMax = timeNow
+                self._axes.axvline(timeNow,
+                                   color='black',
+                                   linestyle='--',
+                                   gid='plot')
+
+            if tMax is None:
+                self._axes.set_xlim(timeNow - 1. / 288, timeNow)
+                self._axes.autoscale(axis='y')
+            else:
+                self._axes.set_xlim(tMin, tMax)
+                self._axes.autoscale()
 
             self._axes.get_figure().autofmt_xdate()
-            self._axes.relim()
+
             self._canvas.draw()
 
             delay = time.time() - t1
@@ -167,6 +195,9 @@ class DialogTimeline(wx.Dialog):
             self._delayDraw /= 2.
             if self._delayDraw < 1. / MAX_TIMELINE_FPS:
                 self._delayDraw = 1. / MAX_TIMELINE_FPS
+
+            if isLive:
+                self._timer.Start(1000. / TIMELINE_FPS, True)
 
 
 if __name__ == '__main__':

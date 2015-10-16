@@ -34,7 +34,6 @@ class CliMonitor(object):
         self._freq = frequency
         self._threshold = threshold
         self._enabled = enabled
-        self._timestamp = None
         self._signals = signals
         self._isSaved = True
         levelsLength = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
@@ -50,14 +49,13 @@ class CliMonitor(object):
         return self._threshold
 
     def set_level(self, level, timestamp, location):
-        update, self._timestamp = set_level(self._signals,
-                                            self._levels,
-                                            location,
-                                            True,
-                                            self._threshold,
-                                            level,
-                                            timestamp,
-                                            self._timestamp)
+        update = set_level(self._signals,
+                           self._levels,
+                           location,
+                           True,
+                           self._threshold,
+                           level,
+                           timestamp)
         if update:
             self._isSaved = False
 

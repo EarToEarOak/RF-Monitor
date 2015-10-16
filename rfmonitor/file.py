@@ -27,7 +27,7 @@ from collections import OrderedDict
 import json
 
 from rfmonitor.constants import APP_NAME
-from rfmonitor.signal import Signal
+from rfmonitor.signals import Signal
 
 
 VERSION = 1

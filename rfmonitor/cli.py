@@ -79,6 +79,9 @@ class Cli(wx.EvtHandler):
         self.__stop_gps()
         if self._server is not None:
             self._server.stop()
+        timestamp = time.time()
+        for monitor in self._monitors:
+            monitor.set_level(None, timestamp, None)
 
         if not self.__is_saved():
             self.__std_out('Saving')
@@ -182,16 +185,17 @@ class Cli(wx.EvtHandler):
             freq = monitor.get_freq()
             if monitor.is_enabled():
                 index = numpy.where(freq == event['f'])[0]
-                update = monitor.set_level(levels[index][0],
+                signal = monitor.set_level(levels[index][0],
                                            event['timestamp'],
                                            self._location)
 
-            if update:
-                recording = format_recording(freq, update)
-                if self._server is not None:
-                    self._server.send(recording)
-                if self._json:
-                    sys.stdout.write(recording + '\n')
+            if signal is not None:
+                if signal.end is not None:
+                    recording = format_recording(freq, signal)
+                    if self._server is not None:
+                        self._server.send(recording)
+                    if self._json:
+                        sys.stdout.write(recording + '\n')
 
     def __on_server_error(self, event):
         self.__std_err(event['msg'])

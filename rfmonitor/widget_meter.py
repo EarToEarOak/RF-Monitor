@@ -88,8 +88,9 @@ class WidgetMeter(wx.Panel):
         return y
 
     def set_level(self, level):
-        self._value = level
-        self.Refresh()
+        if level is not None:
+            self._value = level
+            self.Refresh()
 
     def set_threshold(self, threshold):
         self._threshold = threshold

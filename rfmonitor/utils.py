@@ -25,25 +25,38 @@
 
 import numpy
 
-from rfmonitor.signal import Signal
+from rfmonitor.signals import Signal
+
 
 def set_level(signals, levels, location,
-              isRecording, threshold, level, timestamp, lastTime):
+              isRecording, threshold, level, timestamp):
+    updated = False
+    currentSignal = None
+
     if isRecording:
-        if lastTime is None:
-            if level >= threshold:
-                lastTime = timestamp
+        if len(signals) and signals[-1].end is None:
+            currentSignal = signals[-1]
+
+        if currentSignal is None:
+            if level is not None and level >= threshold:
+                currentSignal = Signal(start=timestamp, location=location)
+                signals.append(currentSignal)
+                updated = True
         else:
-            if level < threshold:
+            if level is None or level < threshold:
                 strength = numpy.mean(levels)
                 levels.clear()
-                signal = Signal(lastTime, timestamp, strength, location)
-                signals.append(signal)
-                lastTime = None
-                return signal, lastTime
-        if level >= threshold:
+                currentSignal.end = timestamp
+                currentSignal.level = strength
+                updated = True
+
+        if level is not None and level >= threshold:
             levels.append(level)
-    return None, lastTime
+
+    if updated:
+        return currentSignal
+
+    return None
 
 
 if __name__ == '__main__':

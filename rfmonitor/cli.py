@@ -57,10 +57,12 @@ class Cli(wx.EvtHandler):
 
         self._queue = Queue.Queue()
 
-        freq, gain = self.__open()
+        freq, gain, monitors = load_recordings(self._filename)
 
         self.__std_out('Frequency: {}MHz'.format(gain))
         self.__std_out('Gain: {}dB\n'.format(freq))
+
+        self.__add_monitors(monitors)
 
         self._signalCount = self.__count_signals()
 
@@ -77,24 +79,7 @@ class Cli(wx.EvtHandler):
             if not self._queue.empty():
                 self.__on_event()
 
-        self.__std_out('\nExiting')
-        self._receive.stop()
-        self.__stop_gps()
-        if self._server is not None:
-            self._server.stop()
-        timestamp = time.time()
-        for monitor in self._monitors:
-            monitor.set_level(None, timestamp, None)
-
-        if not self.__is_saved():
-            self.__std_out('Saving')
-            self.__save(freq, gain)
-
-    def __open(self):
-        freq, gain, monitors = load_recordings(self._filename)
-        self.__add_monitors(monitors)
-
-        return freq, gain
+        self.__stop(freq, gain)
 
     def __save(self, freq, gain):
         save_recordings(self._filename,
@@ -117,7 +102,8 @@ class Cli(wx.EvtHandler):
             cliMonitor = CliMonitor(monitor.get_enabled(),
                                     freq,
                                     monitor.get_threshold(),
-                                    monitor.get_signals())
+                                    monitor.get_signals(),
+                                    monitor.get_periods())
             self._monitors.append(cliMonitor)
 
         freqs = map(str, freqs)
@@ -150,9 +136,32 @@ class Cli(wx.EvtHandler):
 
     def __start(self, freq, gain):
         self.__std_out('Monitoring...')
+
+        timestamp = time.time()
+        for monitor in self._monitors:
+            monitor.start_period(timestamp)
         self._receive = Receive(self._queue,
                                 freq,
                                 gain)
+
+    def __stop(self, freq, gain):
+        self.__std_out('\nStopping...')
+
+        self._receive.stop()
+        timestamp = time.time()
+        for monitor in self._monitors:
+            monitor.set_level(None, timestamp, None)
+            monitor.end_period(timestamp)
+
+        self.__stop_gps()
+        if self._server is not None:
+            self._server.stop()
+
+        if not self.__is_saved():
+            self.__std_out('Saving..')
+            self.__save(freq, gain)
+
+        self.__std_out('Finished')
 
     def __std_out(self, message, lf=True):
         if not self._json:

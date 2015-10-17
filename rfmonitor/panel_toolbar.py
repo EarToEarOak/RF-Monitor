@@ -79,8 +79,9 @@ class PanelToolbar(wx.Panel):
         self._on_rec(recording)
 
     def __on_stop(self, _event):
-        self._buttonRec.SetValue(False)
-        self.__on_rec(None)
+        if self.is_recording():
+            self._buttonRec.SetValue(False)
+            self.__on_rec(None)
         self.enable_start(True)
         self._on_stop()
 

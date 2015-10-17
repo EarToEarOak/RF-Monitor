@@ -36,7 +36,7 @@ from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 class PanelMonitor(Monitor, wx.Panel):
     def __init__(self, parent):
-        Monitor.__init__(self, False, None, None, [])
+        Monitor.__init__(self, False, None, None, [], [])
 
         self._parent = parent
         self._isRecording = False
@@ -160,9 +160,14 @@ class PanelMonitor(Monitor, wx.Panel):
 
         return signal
 
-    def set_recording(self, isRecording):
+    def set_recording(self, isRecording, timestamp):
         self._isRecording = isRecording
         self.__enable_freq()
+        # TODO: ignores if monitor is enabled
+        if isRecording:
+            self.start_period(timestamp)
+        else:
+            self.end_period(timestamp)
 
     def set_signals(self, signals):
         self._signals = signals
@@ -170,6 +175,7 @@ class PanelMonitor(Monitor, wx.Panel):
 
     def clear(self):
         self._signals = []
+        self._periods = []
         self.__set_records()
 
 

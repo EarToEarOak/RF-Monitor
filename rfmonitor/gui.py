@@ -172,7 +172,7 @@ class FrameMain(wx.Frame):
         for monitor in self._monitors:
             if not recording:
                 monitor.set_level(None, timestamp, None)
-            monitor.set_recording(recording)
+            monitor.set_recording(recording, timestamp)
 
         self.__set_timeline()
 
@@ -412,7 +412,6 @@ class FrameMain(wx.Frame):
 
     def open(self, filename):
         freq, gain, monitors = load_recordings(filename)
-        self._isSaved = True
 
         self._filename = filename
         self.__set_title()
@@ -422,6 +421,7 @@ class FrameMain(wx.Frame):
         self.__add_monitors(monitors)
         self.__enable_controls(True)
         self.__set_timeline()
+        self._isSaved = True
 
     def __enable_controls(self, enable):
         self._menuOpen.Enable(enable)
@@ -440,6 +440,7 @@ class FrameMain(wx.Frame):
             panelMonitor.set_freq(monitor.get_frequency())
             panelMonitor.set_threshold(monitor.get_threshold())
             panelMonitor.set_signals(monitor.get_signals())
+            panelMonitor.set_periods(monitor.get_periods())
             self.__add_monitor(panelMonitor)
 
         self._frame.Layout()
@@ -469,14 +470,11 @@ class FrameMain(wx.Frame):
         return False
 
     def __set_timeline(self):
+        monitors = [monitor for monitor in self._monitors
+                    if monitor.get_enabled()]
         if self._dialogTimeline is not None:
-            signals = [(monitor.get_frequency(),
-                        monitor.get_signals())
-                       for monitor in self._monitors
-                       if monitor.get_enabled()]
-
-            self._dialogTimeline.set_signals(signals,
-                                             self._toolbar.is_recording())
+            self._dialogTimeline.set_monitors(monitors,
+                                              self._toolbar.is_recording())
 
     def __start_gps(self):
         if self._gps is None and self._settings.get_gps().enabled:

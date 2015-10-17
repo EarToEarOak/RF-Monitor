@@ -54,7 +54,7 @@ class DialogTimeline(wx.Dialog):
         self._delayDraw = 1. / MAX_TIMELINE_FPS
         self._axes = None
         self._canvas = None
-        self._signals = []
+        self._monitors = None
 
         pre = wx.PreDialog()
         self._ui = load_ui('DialogTimeline.xrc')
@@ -112,7 +112,7 @@ class DialogTimeline(wx.Dialog):
         self._toolbar.Realize()
 
     def __on_timer(self, _event):
-        self.set_signals(self._signals, True)
+        self.set_monitors(self._monitors, True)
 
     def __on_motion(self, event):
         label = ''
@@ -132,9 +132,9 @@ class DialogTimeline(wx.Dialog):
             if gid is not None and gid == 'plot':
                 child.remove()
 
-    def set_signals(self, allSignals, isLive):
+    def set_monitors(self, monitors, isLive):
         self._timer.Stop()
-        self._signals = allSignals
+        self._monitors = monitors
 
         timestamp = time.time()
         if timestamp - self._timestamp > self._delayDraw:
@@ -150,10 +150,21 @@ class DialogTimeline(wx.Dialog):
 
             self.__clear_plots()
             timeNow = epoch2num(time.time())
-            for freq, signals in allSignals:
 
-                bars = []
-                for signal in signals:
+            for monitor in monitors:
+                freq = monitor.get_frequency()
+                signals = []
+                periods = []
+
+                for period in monitor.get_periods():
+                    tStart = epoch2num(period.start)
+                    if period.end is not None:
+                        tEnd = epoch2num(period.end)
+                    else:
+                        tEnd = timeNow
+                    periods.append([tStart, tEnd - tStart])
+
+                for signal in monitor.get_signals():
                     tStart = epoch2num(signal.start)
                     if signal.end is not None:
                         tEnd = epoch2num(signal.end)
@@ -161,16 +172,19 @@ class DialogTimeline(wx.Dialog):
                         tEnd = timeNow
                     tMin = min(tMin, tStart)
                     tMax = max(tMax, tEnd)
-
-                    bars.append([tStart, tEnd - tStart])
+                    signals.append([tStart, tEnd - tStart])
 
                 colour = self._axes._get_lines.color_cycle.next()
-                self._axes.broken_barh(bars, [freq - height / 2, height],
+                self._axes.broken_barh(periods, [freq - height / 2, height],
+                                       color=colour,
+                                       alpha=0.2,
+                                       gid='plot')
+                self._axes.broken_barh(signals, [freq - height / 2, height],
                                        color=colour,
                                        gid='plot')
                 self._axes.axhline(freq,
                                    color=colour,
-                                   gid='plot')
+                                   gid='plot',)
 
             if isLive:
                 tMax = timeNow

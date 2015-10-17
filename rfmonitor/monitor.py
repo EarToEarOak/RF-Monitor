@@ -22,20 +22,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 import collections
 
 from rfmonitor.constants import MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
+from rfmonitor.signals import Period
+
 
 LEVELS_LEN = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
 
 
 class Monitor(object):
-    def __init__(self, enabled, frequency, threshold, signals):
+    def __init__(self, enabled, frequency, threshold, signals, periods):
         self._enabled = enabled
         self._freq = frequency
         self._threshold = threshold
         self._signals = signals
         self._levels = collections.deque(maxlen=round(LEVELS_LEN))
+        self._periods = periods
 
     def get_enabled(self):
         return self._enabled
@@ -48,6 +52,9 @@ class Monitor(object):
 
     def get_signals(self):
         return self._signals
+
+    def get_periods(self):
+        return self._periods
 
     def get_levels(self):
         return self._levels
@@ -66,6 +73,16 @@ class Monitor(object):
 
     def set_levels(self, levels):
         self._levels = levels
+
+    def set_periods(self, periods):
+        self._periods = periods
+
+    def start_period(self, timestamp):
+        period = Period(timestamp)
+        self._periods.append(period)
+
+    def end_period(self, timestamp):
+        self._periods[-1].end = timestamp
 
 
 if __name__ == '__main__':

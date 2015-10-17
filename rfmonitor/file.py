@@ -27,7 +27,7 @@ from collections import OrderedDict
 import json
 
 from rfmonitor.constants import APP_NAME
-from rfmonitor.monitor import Monitor
+from rfmonitor.monitor import Monitor, Period
 from rfmonitor.signals import Signal
 
 
@@ -44,6 +44,8 @@ def save_recordings(filename, freq, gain, monitors):
         jsonMonitor['Threshold'] = monitor.get_threshold()
         jsonMonitor['Signals'] = [signal.to_list()
                                   for signal in monitor.get_signals()]
+        jsonMonitor['Periods'] = [period.to_list()
+                                 for period in monitor.get_periods()]
         jsonMonitors.append(jsonMonitor)
 
     fileData = OrderedDict()
@@ -74,10 +76,15 @@ def load_recordings(filename):
     for jsonMonitor in jsonMonitors:
         signals = [Signal().from_list(signal)
                    for signal in jsonMonitor['Signals']]
+        periods = []
+        if 'Periods' in jsonMonitor:
+            periods = [Period().from_list(period)
+                       for period in jsonMonitor['Periods']]
         monitor = Monitor(jsonMonitor['Enabled'],
                           jsonMonitor['Frequency'] / 1e6,
                           jsonMonitor['Threshold'],
-                          signals)
+                          signals,
+                          periods)
         monitors.append(monitor)
 
     return freq, gain, monitors

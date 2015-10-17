@@ -25,7 +25,7 @@
 
 
 class Signal(object):
-    def __init__(self=None, start=None, end=None, level=None, location=None):
+    def __init__(self, start=None, end=None, level=None, location=None):
         self.start = start
         self.end = end
         self.level = level
@@ -37,6 +37,19 @@ class Signal(object):
 
     def to_list(self):
         return [self.start, self.end, self.level, self.location]
+
+
+class Period(object):
+    def __init__(self, start=None, end=None):
+        self.start = start
+        self.end = end
+
+    @staticmethod
+    def from_list(period):
+        return Period(*period)
+
+    def to_list(self):
+        return [self.start, self.end]
 
 
 if __name__ == '__main__':

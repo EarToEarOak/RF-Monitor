@@ -27,11 +27,7 @@ import argparse
 import os
 import sys
 
-import wx
-
-from rfmonitor.cli import Cli
 from rfmonitor.constants import APP_NAME
-from rfmonitor.gui import RfMonitor, FrameMain
 
 
 def __arguments():
@@ -68,8 +64,13 @@ if __name__ == '__main__':
     args = __arguments()
 
     if args.cli:
+        from rfmonitor.cli import Cli
+
         cli = Cli(args)
     else:
+        import wx
+        from rfmonitor.gui import RfMonitor, FrameMain
+
         app = RfMonitor()
         app.SetClassName(APP_NAME)
         wx.Locale().Init2()

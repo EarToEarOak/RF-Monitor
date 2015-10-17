@@ -41,7 +41,6 @@ class Settings(object):
 
         self._freq = 118.0
         self._gain = 0
-        self._monitors = []
         self._gps = GpsDevice()
 
         self.__load()
@@ -63,29 +62,14 @@ class Settings(object):
     def set_freq(self, freq):
         self._freq = freq
 
-    def get_freq(self):
-        return self._freq
-
     def set_gain(self, gain):
         self._gain = gain
 
+    def get_freq(self):
+        return self._freq
+
     def get_gain(self):
         return self._gain
-
-    def clear_monitors(self):
-        self._monitors = []
-        self._config.DeleteGroup('/Monitors')
-
-    def add_monitor(self, enabled, freq, threshold, signals):
-        monitor = Settings.Monitor()
-        monitor.enabled = enabled
-        monitor.freq = freq
-        monitor.threshold = threshold
-        monitor.signals = signals
-        self._monitors.append(monitor)
-
-    def get_monitors(self):
-        return self._monitors
 
     def get_gps(self):
         return self._gps

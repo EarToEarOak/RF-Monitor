@@ -106,8 +106,6 @@ class FrameMain(wx.Frame):
         self._toolbar.set_gains(gains)
         self._toolbar.set_gain(self._settings.get_gain())
 
-        self.__add_monitors()
-
         self._server = Server(self._frame)
 
         self.__start_gps()
@@ -247,7 +245,7 @@ class FrameMain(wx.Frame):
             return
 
         for monitor in self._monitors:
-            monitor.clear_signals()
+            monitor.clear()
 
         self._isSaved = False
         self.__set_title()
@@ -338,8 +336,8 @@ class FrameMain(wx.Frame):
 
         updated = False
         for monitor in self._monitors:
-            freq = monitor.get_freq()
-            if monitor.is_enabled():
+            freq = monitor.get_frequency()
+            if monitor.get_enabled():
                 index = numpy.where(freq == event['f'])[0]
                 signal = monitor.set_level(levels[index][0],
                                            event['timestamp'],
@@ -378,12 +376,6 @@ class FrameMain(wx.Frame):
     def __update_settings(self):
         self._settings.set_freq(self._toolbar.get_freq())
         self._settings.set_gain(self._toolbar.get_gain())
-        self._settings.clear_monitors()
-        for monitor in self._monitors:
-            self._settings.add_monitor(monitor.is_enabled(),
-                                       monitor.get_freq(),
-                                       monitor.get_threshold(),
-                                       monitor.get_signals())
 
     def __save(self, prompt):
         if prompt or self._filename is None:
@@ -401,7 +393,9 @@ class FrameMain(wx.Frame):
 
         self.__update_settings()
         save_recordings(self._filename,
-                        self._settings)
+                        self._settings.get_freq(),
+                        self._settings.get_gain(),
+                        self._monitors)
         self.__set_title()
 
         self._isSaved = True
@@ -417,14 +411,15 @@ class FrameMain(wx.Frame):
         return True
 
     def open(self, filename):
-        load_recordings(filename,
-                        self._settings)
+        freq, gain, monitors = load_recordings(filename)
+        self._isSaved = True
 
         self._filename = filename
         self.__set_title()
-        self._toolbar.set_freq(self._settings.get_freq())
+        self._toolbar.set_freq(freq)
+        self._toolbar.set_gain(gain)
         self.__clear_monitors()
-        self.__add_monitors()
+        self.__add_monitors(monitors)
         self.__enable_controls(True)
         self.__set_timeline()
 
@@ -436,15 +431,15 @@ class FrameMain(wx.Frame):
         self._menuGps.Enable(enable)
         self._menuExit.Enable(enable)
 
-    def __add_monitors(self):
-        for monitor in self._settings.get_monitors():
+    def __add_monitors(self, monitors):
+        for monitor in monitors:
             panelMonitor = PanelMonitor(self._window)
             panelMonitor.set_callback(self.__on_del)
             panelMonitor.set_freqs(self._freqs)
-            panelMonitor.set_enabled(monitor.enabled)
-            panelMonitor.set_freq(monitor.freq)
-            panelMonitor.set_threshold(monitor.threshold)
-            panelMonitor.set_signals(monitor.signals)
+            panelMonitor.set_enabled(monitor.get_enabled())
+            panelMonitor.set_freq(monitor.get_frequency())
+            panelMonitor.set_threshold(monitor.get_threshold())
+            panelMonitor.set_signals(monitor.get_signals())
             self.__add_monitor(panelMonitor)
 
         self._frame.Layout()
@@ -475,10 +470,10 @@ class FrameMain(wx.Frame):
 
     def __set_timeline(self):
         if self._dialogTimeline is not None:
-            signals = [(monitor.get_freq(),
+            signals = [(monitor.get_frequency(),
                         monitor.get_signals())
                        for monitor in self._monitors
-                       if monitor.is_enabled()]
+                       if monitor.get_enabled()]
 
             self._dialogTimeline.set_signals(signals,
                                              self._toolbar.is_recording())

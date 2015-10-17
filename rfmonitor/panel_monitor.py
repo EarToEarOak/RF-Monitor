@@ -23,27 +23,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import collections
-
 from wx import xrc
 import wx
 
-from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX, MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
+from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX
+from rfmonitor.monitor import Monitor
 from rfmonitor.ui import load_ui
 from rfmonitor.utils import set_level
 from rfmonitor.widget_meter import XrcHandlerMeter
 from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 
-class PanelMonitor(wx.Panel):
+class PanelMonitor(Monitor, wx.Panel):
     def __init__(self, parent):
+        Monitor.__init__(self, False, None, None, [])
+
         self._parent = parent
         self._isRecording = False
-        self._freq = None
-        self._signals = []
         self._isRunning = False
-        levelsLength = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
-        self._levels = collections.deque(maxlen=round(levelsLength))
 
         pre = wx.PrePanel()
         self._ui = load_ui('PanelMonitor.xrc')
@@ -70,7 +67,7 @@ class PanelMonitor(wx.Panel):
         self._sliderThreshold.SetMax(LEVEL_MAX)
         self._meterLevel.set_threshold(self._sliderThreshold.GetValue())
 
-        self.__set_signals()
+        self.__set_records()
 
         self._on_del = None
 
@@ -83,14 +80,14 @@ class PanelMonitor(wx.Panel):
         self._freq = float(event.GetString())
 
     def __on_threshold(self, _event):
-        threshold = self._sliderThreshold.GetValue()
-        self._meterLevel.set_threshold(threshold)
+        self._threshold = self._sliderThreshold.GetValue()
+        self._meterLevel.set_threshold(self._threshold)
 
     def __on_enable(self, _event):
-        enabled = self.is_enabled()
-        self._buttonDel.Enable(not enabled)
+        self._enabled = self._checkEnable.IsChecked()
+        self._buttonDel.Enable(not self._enabled)
         self.__enable_freq()
-        if not enabled:
+        if not self._enabled:
             self._meterLevel.set_level(LEVEL_MIN)
 
     def __on_del(self, _event):
@@ -104,10 +101,10 @@ class PanelMonitor(wx.Panel):
         self._on_del(self)
 
     def __enable_freq(self):
-        self._choiceFreq.Enable(not self._isRecording \
-                                and not len(self._signals))
+        self._choiceFreq.Enable(not self._isRecording and not
+                                len(self._signals))
 
-    def __set_signals(self):
+    def __set_records(self):
         signals = len(self._signals)
         label = 'Recorded: {:4d}'.format(signals)
         self._textSignals.SetLabel(label)
@@ -117,11 +114,9 @@ class PanelMonitor(wx.Panel):
         self._on_del = on_del
 
     def set_enabled(self, enabled):
+        self._enabled = enabled
         self._checkEnable.SetValue(enabled)
         self.__on_enable(None)
-
-    def is_enabled(self):
-        return self._checkEnable.IsChecked()
 
     def set_freqs(self, freqs):
         freqs = map(str, freqs)
@@ -141,21 +136,16 @@ class PanelMonitor(wx.Panel):
             index = self._choiceFreq.GetSelection()
             self._freq = float(self._choiceFreq.GetItems()[index])
         self._signals = []
-        self.__set_signals()
-
-    def get_freq(self):
-        return self._freq
+        self.__set_records()
 
     def set_threshold(self, threshold):
+        self._threshold = threshold
         self._meterLevel.set_threshold(threshold)
         self._sliderThreshold.SetValue(threshold)
 
-    def get_threshold(self):
-        return self._sliderThreshold.GetValue()
-
     def set_level(self, level, timestamp, location):
         self._meterLevel.set_level(level)
-        threshold = self._sliderThreshold.GetValue()
+        threshold = self._threshold
 
         signal = set_level(self._signals,
                            self._levels,
@@ -166,7 +156,7 @@ class PanelMonitor(wx.Panel):
                            timestamp)
 
         if signal is not None:
-            self.__set_signals()
+            self.__set_records()
 
         return signal
 
@@ -176,14 +166,11 @@ class PanelMonitor(wx.Panel):
 
     def set_signals(self, signals):
         self._signals = signals
-        self.__set_signals()
+        self.__set_records()
 
-    def get_signals(self):
-        return self._signals
-
-    def clear_signals(self):
+    def clear(self):
         self._signals = []
-        self.__set_signals()
+        self.__set_records()
 
 
 if __name__ == '__main__':

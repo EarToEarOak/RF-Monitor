@@ -39,16 +39,15 @@ from rfmonitor.file import load_recordings, save_recordings, format_recording
 from rfmonitor.gps import GpsDevice, Gps
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
-from rfmonitor.settings import Settings
 
 
 class Cli(wx.EvtHandler):
     def __init__(self, args):
         wx.EvtHandler.__init__(self)
+        self._freq = None
         self._monitors = []
         self._freqs = []
         self._location = None
-        self._settings = Settings()
         self._filename = args.file
         self._gpsPort = args.port
         self._gpsBaud = args.baud
@@ -58,12 +57,11 @@ class Cli(wx.EvtHandler):
 
         self._queue = Queue.Queue()
 
-        self.__open()
+        freq, gain = self.__open()
 
-        self.__std_out('Frequency: {}MHz'.format(self._settings.get_freq()))
-        self.__std_out('Gain: {}dB\n'.format(self._settings.get_gain()))
+        self.__std_out('Frequency: {}MHz'.format(gain))
+        self.__std_out('Gain: {}dB\n'.format(freq))
 
-        self.__add_monitors()
         self._signalCount = self.__count_signals()
 
         self._signal = signal.signal(signal.SIGINT, self.__on_exit)
@@ -73,13 +71,13 @@ class Cli(wx.EvtHandler):
         self._gps = None
         self.__start_gps()
 
-        self.__start()
+        self.__start(freq, gain)
 
         while not self._cancel:
             if not self._queue.empty():
                 self.__on_event()
 
-        self.__std_out('Exiting')
+        self.__std_out('\nExiting')
         self._receive.stop()
         self.__stop_gps()
         if self._server is not None:
@@ -90,15 +88,19 @@ class Cli(wx.EvtHandler):
 
         if not self.__is_saved():
             self.__std_out('Saving')
-            self.__save()
+            self.__save(freq, gain)
 
     def __open(self):
-        load_recordings(self._filename,
-                        self._settings)
+        freq, gain, monitors = load_recordings(self._filename)
+        self.__add_monitors(monitors)
 
-    def __save(self):
+        return freq, gain
+
+    def __save(self, freq, gain):
         save_recordings(self._filename,
-                        self._settings)
+                        freq,
+                        gain,
+                        self._monitors)
 
     def __is_saved(self):
         for monitor in self._monitors:
@@ -107,15 +109,15 @@ class Cli(wx.EvtHandler):
 
         return True
 
-    def __add_monitors(self):
+    def __add_monitors(self, monitors):
         freqs = []
-        for monitor in self._settings.get_monitors():
-            freq = monitor.freq
+        for monitor in monitors:
+            freq = monitor.get_frequency()
             freqs.append(freq)
-            cliMonitor = CliMonitor(monitor.freq,
-                                    monitor.threshold,
-                                    monitor.enabled,
-                                    monitor.signals)
+            cliMonitor = CliMonitor(monitor.get_enabled(),
+                                    freq,
+                                    monitor.get_threshold(),
+                                    monitor.get_signals())
             self._monitors.append(cliMonitor)
 
         freqs = map(str, freqs)
@@ -146,11 +148,11 @@ class Cli(wx.EvtHandler):
         timer = Timer(GPS_RETRY, self.__start_gps)
         timer.start()
 
-    def __start(self):
+    def __start(self, freq, gain):
         self.__std_out('Monitoring...')
         self._receive = Receive(self._queue,
-                                self._settings.get_freq(),
-                                self._settings.get_gain())
+                                freq,
+                                gain)
 
     def __std_out(self, message, lf=True):
         if not self._json:
@@ -196,16 +198,16 @@ class Cli(wx.EvtHandler):
         levels *= 10
 
         for monitor in self._monitors:
-            freq = monitor.get_freq()
-            if monitor.is_enabled():
+            freq = monitor.get_frequency()
+            if monitor.get_enabled():
                 index = numpy.where(freq == event['f'])[0]
                 signal = monitor.set_level(levels[index][0],
                                            event['timestamp'],
                                            self._location)
 
             if signal is not None:
-                signals = 'Signals: {}\r'.format(self.__count_signals() \
-                                                 - self._signalCount)
+                signals = 'Signals: {}\r'.format(self.__count_signals() -
+                                                 self._signalCount)
                 self.__std_out(signals, False)
                 if signal.end is not None:
                     recording = format_recording(freq, signal)

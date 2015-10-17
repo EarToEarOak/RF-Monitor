@@ -23,30 +23,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import collections
 
-from rfmonitor.constants import MAX_LEVELS_TIME, SAMPLE_RATE, SAMPLES
+from rfmonitor.monitor import Monitor
 from rfmonitor.utils import set_level
 
 
-class CliMonitor(object):
-    def __init__(self, frequency, threshold, enabled, signals):
-        self._freq = frequency
-        self._threshold = threshold
-        self._enabled = enabled
-        self._signals = signals
+class CliMonitor(Monitor):
+    def __init__(self, enabled, frequency, threshold, signals):
+        Monitor.__init__(self, enabled, frequency, threshold, signals)
+
         self._isSaved = True
-        levelsLength = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
-        self._levels = collections.deque(maxlen=round(levelsLength))
-
-    def is_enabled(self):
-        return self._enabled
-
-    def get_freq(self):
-        return self._freq
-
-    def get_threshold(self):
-        return self._threshold
 
     def set_level(self, level, timestamp, location):
         update = set_level(self._signals,
@@ -61,12 +47,8 @@ class CliMonitor(object):
 
         return update
 
-    def get_signals(self):
-        return self._signals
-
     def get_saved(self):
         return self._isSaved
-
 
 
 if __name__ == '__main__':

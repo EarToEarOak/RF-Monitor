@@ -27,27 +27,29 @@ from collections import OrderedDict
 import json
 
 from rfmonitor.constants import APP_NAME
+from rfmonitor.monitor import Monitor
 from rfmonitor.signals import Signal
 
 
 VERSION = 1
 
 
-def save_recordings(filename, settings):
+def save_recordings(filename, freq, gain, monitors):
 
     jsonMonitors = []
-    for monitor in settings.get_monitors():
+    for monitor in monitors:
         jsonMonitor = OrderedDict()
-        jsonMonitor['Enabled'] = monitor.enabled
-        jsonMonitor['Frequency'] = int(monitor.freq * 1e6)
-        jsonMonitor['Threshold'] = monitor.threshold
+        jsonMonitor['Enabled'] = monitor.get_enabled()
+        jsonMonitor['Frequency'] = int(monitor.get_frequency() * 1e6)
+        jsonMonitor['Threshold'] = monitor.get_threshold()
         jsonMonitor['Signals'] = [signal.to_list()
-                                  for signal in monitor.signals]
+                                  for signal in monitor.get_signals()]
         jsonMonitors.append(jsonMonitor)
 
     fileData = OrderedDict()
     fileData['Version'] = VERSION
-    fileData['Frequency'] = settings.get_freq() * 1e6
+    fileData['Frequency'] = freq * 1e6
+    fileData['Gain'] = gain
     fileData['Monitors'] = jsonMonitors
 
     data = [APP_NAME, fileData]
@@ -57,23 +59,28 @@ def save_recordings(filename, settings):
     handle.close()
 
 
-def load_recordings(filename, settings):
+def load_recordings(filename):
     handle = open(filename, 'rb')
     data = json.loads(handle.read())
     handle.close()
 
     _header = data[0]
     _version = data[1]['Version']
-    settings.freq = data[1]['Frequency'] / 1e6
-    monitors = data[1]['Monitors']
+    freq = data[1]['Frequency'] / 1e6
+    gain = data[1]['Gain'] if 'Gain' in data[1] else None
+    jsonMonitors = data[1]['Monitors']
 
-    settings.clear_monitors()
-    for monitor in monitors:
-        signals = [Signal().from_list(signal) for signal in monitor['Signals']]
-        settings.add_monitor(monitor['Enabled'],
-                             monitor['Frequency'] / 1e6,
-                             monitor['Threshold'],
-                             signals)
+    monitors = []
+    for jsonMonitor in jsonMonitors:
+        signals = [Signal().from_list(signal)
+                   for signal in jsonMonitor['Signals']]
+        monitor = Monitor(jsonMonitor['Enabled'],
+                          jsonMonitor['Frequency'] / 1e6,
+                          jsonMonitor['Threshold'],
+                          signals)
+        monitors.append(monitor)
+
+    return freq, gain, monitors
 
 
 def format_recording(freq, recording):

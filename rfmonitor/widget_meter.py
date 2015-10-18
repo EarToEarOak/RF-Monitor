@@ -43,6 +43,8 @@ class WidgetMeter(wx.Panel):
         self.Bind(wx.EVT_PAINT, self.__on_paint)
         self.Bind(wx.EVT_SIZE, self.__on_size)
 
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+
     def __on_paint(self, _event):
         dc = wx.BufferedPaintDC(self)
         w, h = self.GetClientSize()

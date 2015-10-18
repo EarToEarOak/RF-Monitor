@@ -26,7 +26,7 @@
 import os
 import sys
 
-from wx import xrc
+from wx import xrc, Sound
 
 
 def __get_ui_dir():
@@ -39,6 +39,11 @@ def __get_ui_dir():
 def load_ui(filename):
     ui = os.path.join(__get_ui_dir(), filename)
     return xrc.XmlResource(ui)
+
+
+def load_sound(filename):
+    sound = os.path.join(__get_ui_dir(), filename)
+    return Sound(sound)
 
 
 if __name__ == '__main__':

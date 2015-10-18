@@ -34,7 +34,7 @@ from wx import xrc
 import wx
 
 from rfmonitor.constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME, \
-    GPS_RETRY
+    GPS_RETRY, ALERT_LENGTH
 from rfmonitor.dialog_about import DialogAbout
 from rfmonitor.dialog_gps import DialogGps
 from rfmonitor.dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
@@ -47,7 +47,7 @@ from rfmonitor.panel_toolbar import XrcHandlerToolbar
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
-from rfmonitor.ui import load_ui
+from rfmonitor.ui import load_ui, load_sound
 
 
 class RfMonitor(wx.App):
@@ -139,6 +139,9 @@ class FrameMain(wx.Frame):
         idAbout = xrc.XRCID('menuAbout')
         self._frame.Bind(wx.EVT_MENU, self.__on_about, id=idAbout)
 
+        self._alert = load_sound('alert.wav')
+        self._alertLast = 0
+
         self.__enable_controls(True)
 
         self._frame.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
@@ -187,7 +190,7 @@ class FrameMain(wx.Frame):
             self._dialogSpectrum.clear_spectrum()
 
     def __on_add(self):
-        monitor = PanelMonitor(self._window)
+        monitor = PanelMonitor(self._window, self._frame)
         monitor.set_callback(self.__on_del)
         monitor.set_freqs(self._freqs)
         self.__add_monitor(monitor)
@@ -321,6 +324,11 @@ class FrameMain(wx.Frame):
             self._location = event.data['loc']
             loc = '{:9.5f}, {:9.5f}'.format(*self._location)
             self._status.SetStatusText(loc, 1)
+        elif event.type == Events.MON_ALERT:
+            now = time.time()
+            if now - self._alertLast >= ALERT_LENGTH:
+                self._alertLast = now
+                self._alert.Play()
 
     def __on_scan_error(self, event):
         wx.MessageBox(event['msg'],
@@ -433,7 +441,7 @@ class FrameMain(wx.Frame):
 
     def __add_monitors(self, monitors):
         for monitor in monitors:
-            panelMonitor = PanelMonitor(self._window)
+            panelMonitor = PanelMonitor(self._window, self._frame)
             panelMonitor.set_callback(self.__on_del)
             panelMonitor.set_freqs(self._freqs)
             panelMonitor.set_enabled(monitor.get_enabled())

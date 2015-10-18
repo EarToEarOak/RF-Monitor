@@ -27,6 +27,7 @@ from wx import xrc
 import wx
 
 from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX
+from rfmonitor.events import post_event, Event, Events
 from rfmonitor.monitor import Monitor
 from rfmonitor.ui import load_ui
 from rfmonitor.utils import set_level
@@ -35,12 +36,14 @@ from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 
 class PanelMonitor(Monitor, wx.Panel):
-    def __init__(self, parent):
+    def __init__(self, parent, eventHandler):
         Monitor.__init__(self, False, None, None, [], [])
 
-        self._parent = parent
+        self._eventHandler = eventHandler
         self._isRecording = False
         self._isRunning = False
+        self._alert = False
+        self._isLow = True
 
         pre = wx.PrePanel()
         self._ui = load_ui('PanelMonitor.xrc')
@@ -54,6 +57,7 @@ class PanelMonitor(Monitor, wx.Panel):
         self.PostCreate(pre)
 
         self._checkEnable = xrc.XRCCTRL(pre, 'checkEnable')
+        self._checkAlert = xrc.XRCCTRL(pre, 'checkAlert')
         self._choiceFreq = xrc.XRCCTRL(pre, 'choiceFreq')
         self._textSignals = xrc.XRCCTRL(pre, 'textSignals')
         # TODO: hackish
@@ -71,17 +75,11 @@ class PanelMonitor(Monitor, wx.Panel):
 
         self._on_del = None
 
+        self.Bind(wx.EVT_CHECKBOX, self.__on_enable, self._checkEnable)
+        self.Bind(wx.EVT_CHECKBOX, self.__on_alert, self._checkAlert)
         self.Bind(wx.EVT_CHOICE, self.__on_freq, self._choiceFreq)
         self.Bind(wx.EVT_SLIDER, self.__on_threshold, self._sliderThreshold)
-        self.Bind(wx.EVT_CHECKBOX, self.__on_enable, self._checkEnable)
         self.Bind(wx.EVT_BUTTON, self.__on_del, self._buttonDel)
-
-    def __on_freq(self, event):
-        self._freq = float(event.GetString())
-
-    def __on_threshold(self, _event):
-        self._threshold = self._sliderThreshold.GetValue()
-        self._meterLevel.set_threshold(self._threshold)
 
     def __on_enable(self, _event):
         self._enabled = self._checkEnable.IsChecked()
@@ -89,6 +87,16 @@ class PanelMonitor(Monitor, wx.Panel):
         self.__enable_freq()
         if not self._enabled:
             self._meterLevel.set_level(LEVEL_MIN)
+
+    def __on_alert(self, _event):
+        self._alert = self._checkAlert.IsChecked()
+
+    def __on_freq(self, event):
+        self._freq = float(event.GetString())
+
+    def __on_threshold(self, _event):
+        self._threshold = self._sliderThreshold.GetValue()
+        self._meterLevel.set_threshold(self._threshold)
 
     def __on_del(self, _event):
         if len(self._signals):
@@ -157,6 +165,14 @@ class PanelMonitor(Monitor, wx.Panel):
 
         if signal is not None:
             self.__set_records()
+
+        if level >= threshold and self._isLow:
+            self._isLow = False
+            if self._alert:
+                event = Event(Events.MON_ALERT)
+                post_event(self._eventHandler, event)
+        elif level < threshold:
+            self._isLow = True
 
         return signal
 

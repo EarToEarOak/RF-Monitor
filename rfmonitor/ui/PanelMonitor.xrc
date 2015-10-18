@@ -16,18 +16,36 @@
 				<object class="wxBoxSizer">
 					<orient>wxVERTICAL</orient>
 					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-						<border>5</border>
-						<object class="wxCheckBox" name="checkEnable">
-							<tooltip>Enable monitor</tooltip>
-							<label>Enable</label>
-							<checked>0</checked>
-						</object>
-					</object>
+                        <option>1</option>
+                        <flag>wxEXPAND</flag>
+                        <border>5</border>
+                        <object class="wxBoxSizer">
+                            <orient>wxHORIZONTAL</orient>
+                            <object class="sizeritem">
+                                <option>0</option>
+                                <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                                <border>5</border>
+                                <object class="wxCheckBox" name="checkEnable">
+                                    <tooltip>Enable monitor</tooltip>
+                                    <label>Enable</label>
+                                    <checked>0</checked>
+                                </object>
+                            </object>
+                            <object class="sizeritem">
+                                <option>0</option>
+                                <flag>wxALL</flag>
+                                <border>5</border>
+                                <object class="wxCheckBox" name="checkAlert">
+                                    <tooltip>Audio alert</tooltip>
+                                    <label>Alert</label>
+                                    <checked>0</checked>
+                                </object>
+                            </object>
+                        </object>
+                    </object>
 					<object class="sizeritem">
 						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+						<flag>wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND</flag>
 						<border>5</border>
 						<object class="wxChoice" name="choiceFreq">
 							<tooltip>Frequency (MHz)</tooltip>

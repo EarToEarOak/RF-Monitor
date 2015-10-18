@@ -445,6 +445,7 @@ class FrameMain(wx.Frame):
             panelMonitor.set_callback(self.__on_del)
             panelMonitor.set_freqs(self._freqs)
             panelMonitor.set_enabled(monitor.get_enabled())
+            panelMonitor.set_alert(monitor.get_alert())
             panelMonitor.set_freq(monitor.get_frequency())
             panelMonitor.set_threshold(monitor.get_threshold())
             panelMonitor.set_signals(monitor.get_signals())

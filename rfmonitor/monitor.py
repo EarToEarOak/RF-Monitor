@@ -33,8 +33,13 @@ LEVELS_LEN = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
 
 
 class Monitor(object):
-    def __init__(self, enabled, frequency, threshold, signals, periods):
+    def __init__(self,
+                 enabled, alert,
+                 frequency, threshold,
+                 signals, periods):
+
         self._enabled = enabled
+        self._alert = alert
         self._freq = frequency
         self._threshold = threshold
         self._signals = signals
@@ -43,6 +48,9 @@ class Monitor(object):
 
     def get_enabled(self):
         return self._enabled
+
+    def get_alert(self):
+        return self._alert
 
     def get_frequency(self):
         return self._freq
@@ -61,6 +69,9 @@ class Monitor(object):
 
     def set_enabled(self, enabled):
         self._enabled = enabled
+
+    def set_alert(self, alert):
+        self._alert = alert
 
     def set_frequency(self, frequency):
         self._freq = frequency

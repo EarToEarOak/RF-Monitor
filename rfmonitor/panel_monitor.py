@@ -39,12 +39,11 @@ from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 class PanelMonitor(Monitor, wx.Panel):
     def __init__(self, parent, eventHandler):
-        Monitor.__init__(self, False, None, None, [], [])
+        Monitor.__init__(self, False, False, None, None, [], [])
 
         self._eventHandler = eventHandler
         self._isRecording = False
         self._isRunning = False
-        self._alert = False
         self._isLow = True
 
         pre = wx.PrePanel()
@@ -71,7 +70,8 @@ class PanelMonitor(Monitor, wx.Panel):
 
         self._sliderThreshold.SetMin(LEVEL_MIN)
         self._sliderThreshold.SetMax(LEVEL_MAX)
-        self._meterLevel.set_threshold(self._sliderThreshold.GetValue())
+        self._threshold = self._sliderThreshold.GetValue()
+        self._meterLevel.set_threshold(self._threshold)
 
         self.__set_records()
 
@@ -132,6 +132,10 @@ class PanelMonitor(Monitor, wx.Panel):
         self.__enable_freq()
         if not self._enabled:
             self._meterLevel.set_level(LEVEL_MIN)
+
+    def set_alert(self, alert):
+        self._alert = alert
+        self._checkAlert.SetValue(alert)
 
     def set_freqs(self, freqs):
         freqs = map(str, freqs)

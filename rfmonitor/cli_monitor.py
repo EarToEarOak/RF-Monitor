@@ -29,8 +29,15 @@ from rfmonitor.utils import set_level
 
 
 class CliMonitor(Monitor):
-    def __init__(self, enabled, frequency, threshold, signals, periods):
-        Monitor.__init__(self, enabled, frequency, threshold, signals, periods)
+    def __init__(self,
+                 enabled, alert,
+                 frequency, threshold,
+                 signals, periods):
+
+        Monitor.__init__(self,
+                         enabled, alert,
+                         frequency, threshold,
+                         signals, periods)
 
         self._isSaved = True
 

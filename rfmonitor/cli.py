@@ -100,6 +100,7 @@ class Cli(wx.EvtHandler):
             freq = monitor.get_frequency()
             freqs.append(freq)
             cliMonitor = CliMonitor(monitor.get_enabled(),
+                                    monitor.get_alert(),
                                     freq,
                                     monitor.get_threshold(),
                                     monitor.get_signals(),

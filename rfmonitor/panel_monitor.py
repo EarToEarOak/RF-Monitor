@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import time
+
 from wx import xrc
 import wx
 
@@ -82,11 +84,13 @@ class PanelMonitor(Monitor, wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.__on_del, self._buttonDel)
 
     def __on_enable(self, _event):
-        self._enabled = self._checkEnable.IsChecked()
-        self._buttonDel.Enable(not self._enabled)
-        self.__enable_freq()
-        if not self._enabled:
-            self._meterLevel.set_level(LEVEL_MIN)
+        enabled = self._checkEnable.IsChecked()
+        self.set_enabled(enabled)
+        timestamp = time.time()
+        if self._isRecording and self._enabled:
+            self.start_period(timestamp)
+        elif self._isRecording and not self._enabled:
+            self.end_period(timestamp)
 
     def __on_alert(self, _event):
         self._alert = self._checkAlert.IsChecked()
@@ -124,7 +128,10 @@ class PanelMonitor(Monitor, wx.Panel):
     def set_enabled(self, enabled):
         self._enabled = enabled
         self._checkEnable.SetValue(enabled)
-        self.__on_enable(None)
+        self._buttonDel.Enable(not self._enabled)
+        self.__enable_freq()
+        if not self._enabled:
+            self._meterLevel.set_level(LEVEL_MIN)
 
     def set_freqs(self, freqs):
         freqs = map(str, freqs)
@@ -179,10 +186,9 @@ class PanelMonitor(Monitor, wx.Panel):
     def set_recording(self, isRecording, timestamp):
         self._isRecording = isRecording
         self.__enable_freq()
-        # TODO: ignores if monitor is enabled
-        if isRecording:
+        if isRecording and self._enabled:
             self.start_period(timestamp)
-        else:
+        elif not self._isRecording and self._enabled:
             self.end_period(timestamp)
 
     def set_signals(self, signals):

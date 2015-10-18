@@ -79,7 +79,6 @@ class FrameMain(wx.Frame):
         self._ui.AddHandler(handlerToolbar)
 
         self._frame = self._ui.LoadFrame(None, 'FrameMain')
-        self.__set_title()
 
         self._window = xrc.XRCCTRL(self._frame, 'window')
         self._status = xrc.XRCCTRL(self._frame, 'statusBar')
@@ -142,6 +141,7 @@ class FrameMain(wx.Frame):
         self._alert = load_sound('alert.wav')
         self._alertLast = 0
 
+        self.__set_title()
         self.__enable_controls(True)
 
         self._frame.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
@@ -329,6 +329,9 @@ class FrameMain(wx.Frame):
             if now - self._alertLast >= ALERT_LENGTH:
                 self._alertLast = now
                 self._alert.Play()
+        elif event.type == Events.MON_CHANGED:
+            self._isSaved = False
+            self.__set_title()
 
     def __on_scan_error(self, event):
         wx.MessageBox(event['msg'],
@@ -377,6 +380,11 @@ class FrameMain(wx.Frame):
         if self._filename is not None:
             _head, tail = os.path.split(self._filename)
             title += ' - ' + tail
+            self._menuSave.Enable(not self._isSaved)
+            self._menuSaveAs.Enable(not self._isSaved)
+        else:
+            self._menuSave.Enable(False)
+            self._menuSaveAs.Enable(not self._isSaved)
         if not self._isSaved:
             title += '*'
         self._frame.SetTitle(title)
@@ -433,8 +441,6 @@ class FrameMain(wx.Frame):
 
     def __enable_controls(self, enable):
         self._menuOpen.Enable(enable)
-        self._menuSave.Enable(enable)
-        self._menuSaveAs.Enable(enable)
         self._menuClear.Enable(enable and self.__has_recordings())
         self._menuGps.Enable(enable)
         self._menuExit.Enable(enable)

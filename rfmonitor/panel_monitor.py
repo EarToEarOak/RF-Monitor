@@ -92,15 +92,27 @@ class PanelMonitor(Monitor, wx.Panel):
         elif self._isRecording and not self._enabled:
             self.end_period(timestamp)
 
+        event = Event(Events.MON_CHANGED)
+        post_event(self._eventHandler, event)
+
     def __on_alert(self, _event):
         self._alert = self._checkAlert.IsChecked()
+
+        event = Event(Events.MON_CHANGED)
+        post_event(self._eventHandler, event)
 
     def __on_freq(self, event):
         self._freq = float(event.GetString())
 
+        event = Event(Events.MON_CHANGED)
+        post_event(self._eventHandler, event)
+
     def __on_threshold(self, _event):
         self._threshold = self._sliderThreshold.GetValue()
         self._meterLevel.set_threshold(self._threshold)
+
+        event = Event(Events.MON_CHANGED)
+        post_event(self._eventHandler, event)
 
     def __on_del(self, _event):
         if len(self._signals):

@@ -59,8 +59,8 @@ class Cli(wx.EvtHandler):
 
         freq, gain, monitors = load_recordings(self._filename)
 
-        self.__std_out('Frequency: {}MHz'.format(gain))
-        self.__std_out('Gain: {}dB\n'.format(freq))
+        self.__std_out('Frequency: {}MHz'.format(freq))
+        self.__std_out('Gain: {}dB\n'.format(gain))
 
         self.__add_monitors(monitors)
 

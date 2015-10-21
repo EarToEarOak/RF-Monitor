@@ -28,6 +28,10 @@ import wx
 
 from rfmonitor.constants import LEVEL_MAX, LEVEL_MIN
 
+TICK_SIZE_MAJ = 6
+TICK_SIZE_MIN = 2
+THRES_SIZE = 4
+
 
 class WidgetMeter(wx.Panel):
     def __init__(self, parent):
@@ -37,7 +41,7 @@ class WidgetMeter(wx.Panel):
         self._threshold = LEVEL_MIN
 
         font = self.GetFont()
-        font.SetPixelSize((0, 10))
+        font.SetPixelSize((6, 8))
         self.SetFont(font)
 
         self.Bind(wx.EVT_PAINT, self.__on_paint)
@@ -62,13 +66,24 @@ class WidgetMeter(wx.Panel):
         x = self.__scale_x(self._value, w)
         dc.DrawRectangle(0, 0, x, h)
 
+        dc.SetPen(wx.Pen('#8080FF', 2))
+        dc.SetBrush(wx.Brush('#8080FF'))
+        x = round(self.__scale_x(self._threshold, w))
+        dc.DrawPolygon([(x - THRES_SIZE, 0),
+                        (x + THRES_SIZE, 0),
+                        (x, THRES_SIZE)])
+        dc.DrawPolygon([(x - THRES_SIZE, h),
+                        (x + THRES_SIZE, h),
+                        (x, h - THRES_SIZE)])
+        dc.DrawLine(x, THRES_SIZE, x, h - THRES_SIZE)
+
         dc.SetPen(wx.GREY_PEN)
         ticks = range(LEVEL_MIN, LEVEL_MAX, 10)
         for tick in ticks:
             if tick not in [LEVEL_MIN, LEVEL_MAX]:
                 x = self.__scale_x(tick, w)
-                dc.DrawLine(x, 0, x, 5)
-                dc.DrawLine(x, h, x, h - 5)
+                dc.DrawLine(x, 0, x, TICK_SIZE_MAJ)
+                dc.DrawLine(x, h, x, h - TICK_SIZE_MAJ)
 
                 label = str(tick)
                 tW, tH = dc.GetTextExtent(label)
@@ -77,12 +92,8 @@ class WidgetMeter(wx.Panel):
         for tick in ticks:
             if tick not in [LEVEL_MIN, LEVEL_MAX]:
                 x = self.__scale_x(tick, w)
-                dc.DrawLine(x, 0, x, 2.5)
-                dc.DrawLine(x, h, x, h - 2.5)
-
-        dc.SetPen(wx.Pen(wx.BLUE, 2, wx.LONG_DASH))
-        x = self.__scale_x(self._threshold, w)
-        dc.DrawLine(x, 0, x, h)
+                dc.DrawLine(x, 0, x, TICK_SIZE_MIN)
+                dc.DrawLine(x, h, x, h - TICK_SIZE_MIN)
 
     def __on_size(self, _event):
         self.Refresh()

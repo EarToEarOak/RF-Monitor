@@ -114,6 +114,8 @@ class DialogSpectrum(wx.Dialog):
             t1 = time.time()
             self._timestamp = timestamp
             self._spectrum.set_data(freqs, levels)
+            for freq in freqs:
+                self._axes.axvline(freq)
             self._axes.relim()
             self._axes.autoscale_view(True, True, True)
 

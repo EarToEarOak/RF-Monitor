@@ -53,6 +53,8 @@ class PanelToolbar(wx.Panel):
 
         self._numFreq.SetMin(1)
         self._numFreq.SetMax(9999)
+        self._numFreq.SetAllowNone(False)
+        self._numFreq.SetLimited(True)
 
         self._on_freq = None
         self._on_start = None

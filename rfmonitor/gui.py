@@ -160,6 +160,9 @@ class FrameMain(wx.Frame):
         freqs += freq
         self._freqs = freqs.tolist()
 
+        if self._receive is not None:
+            self._receive.set_frequency(freq)
+
     def __on_start(self):
         self.__enable_controls(False)
         if self._receive is None:

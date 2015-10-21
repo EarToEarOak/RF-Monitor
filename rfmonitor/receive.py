@@ -76,10 +76,14 @@ class Receive(threading.Thread):
 
         return iq
 
+    def set_frequency(self, frequency):
+        self._freq = frequency
+        self._sdr.set_center_freq(self._freq * 1e6)
+
     def run(self):
         self._sdr = rtlsdr.RtlSdr()
         self._sdr.set_sample_rate(SAMPLE_RATE)
-        self._sdr.set_center_freq(self._freq * 1e6)
+        self.set_frequency(self._freq)
         self._sdr.set_gain(self._gain)
         time.sleep(1)
 

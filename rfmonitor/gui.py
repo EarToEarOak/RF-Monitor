@@ -367,13 +367,16 @@ class FrameMain(wx.Frame):
             if self._isSaved:
                 self._isSaved = False
                 self.__set_title()
-
                 self.__set_timeline()
 
         if self._dialogSpectrum is not None:
+            monitors = [monitor.get_frequency()
+                        for monitor in self._monitors
+                        if monitor.get_enabled()]
             self._dialogSpectrum.set_spectrum(self._freqs,
                                               self._levels,
-                                              event['timestamp'])
+                                              event['timestamp'],
+                                              monitors)
 
     def __on_server_error(self, event):
         sys.stderr.write(event['msg'])

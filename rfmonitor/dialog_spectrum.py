@@ -111,11 +111,22 @@ class DialogSpectrum(wx.Dialog):
         wx.PostEvent(self._parent, evt)
         self.Destroy()
 
-    def set_spectrum(self, freqs, levels, timestamp):
+    def __clear_lines(self):
+        for child in self._axes.get_children():
+            gid = child.get_gid()
+            if gid is not None and gid == 'line':
+                child.remove()
+
+    def set_spectrum(self, freqs, levels, timestamp, monitors):
         self._freqs = freqs
         if timestamp - self._timestamp > self._delayDraw:
             t1 = time.time()
             self._timestamp = timestamp
+
+            self.__clear_lines()
+            for monitor in monitors:
+                self._axes.axvline(monitor, color='g', gid='line')
+
             self._spectrum.set_data(freqs, levels)
             self._axes.relim()
             self._axes.autoscale_view(True, True, True)

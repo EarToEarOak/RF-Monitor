@@ -48,7 +48,6 @@ class NavigationToolbar(NavigationToolbar2Wx):
         return self._autoScale
 
 
-
 if __name__ == '__main__':
     print 'Please run rfmonitor.py'
     exit(1)

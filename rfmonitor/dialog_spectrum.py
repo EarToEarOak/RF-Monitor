@@ -41,7 +41,7 @@ EventSpectrumClose, EVT_SPECTRUM_CLOSE = wx.lib.newevent.NewEvent()
 
 
 class DialogSpectrum(wx.Dialog):
-    def __init__(self, parent):
+    def __init__(self, parent, freqs):
         self._parent = parent
         self._spectrum = None
         self._toolbar = None
@@ -50,6 +50,7 @@ class DialogSpectrum(wx.Dialog):
         self._delayDraw = 1. / MAX_SPECTRUM_FPS
         self._axes = None
         self._canvas = None
+        self._freqs = freqs
 
         pre = wx.PreDialog()
         self._ui = load_ui('DialogSpectrum.xrc')
@@ -101,7 +102,8 @@ class DialogSpectrum(wx.Dialog):
     def __on_motion(self, event):
         label = ''
         if event.xdata is not None:
-            label = '{: 8.4f}MHz'.format(event.xdata)
+            freq = min(self._freqs, key=lambda x: abs(x - event.xdata))
+            label = '{: 8.4f}MHz'.format(freq)
         self._textFreq.SetLabel(label)
 
     def __on_close(self, _event):
@@ -110,12 +112,11 @@ class DialogSpectrum(wx.Dialog):
         self.Destroy()
 
     def set_spectrum(self, freqs, levels, timestamp):
+        self._freqs = freqs
         if timestamp - self._timestamp > self._delayDraw:
             t1 = time.time()
             self._timestamp = timestamp
             self._spectrum.set_data(freqs, levels)
-            for freq in freqs:
-                self._axes.axvline(freq)
             self._axes.relim()
             self._axes.autoscale_view(True, True, True)
 

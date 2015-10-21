@@ -277,7 +277,8 @@ class FrameMain(wx.Frame):
 
     def __on_spectrum(self, event):
         if event.IsChecked() and self._dialogSpectrum is None:
-            self._dialogSpectrum = DialogSpectrum(self._frame)
+            self._dialogSpectrum = DialogSpectrum(self._frame,
+                                                  self._freqs)
             self._dialogSpectrum.Show()
         elif self._dialogSpectrum is not None:
             self._dialogSpectrum.Destroy()

@@ -28,13 +28,13 @@ import time
 import matplotlib
 matplotlib.use('WXAgg')
 
-from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
 from wx import xrc
 import wx.lib.newevent
 
 from rfmonitor.constants import MAX_SPECTRUM_FPS
+from rfmonitor.navigation_toolbar import NavigationToolbar
 from rfmonitor.ui import load_ui
 
 EventSpectrumClose, EVT_SPECTRUM_CLOSE = wx.lib.newevent.NewEvent()
@@ -86,7 +86,7 @@ class DialogSpectrum(wx.Dialog):
         self._canvas.mpl_connect('motion_notify_event', self.__on_motion)
 
     def __setup_toolbar(self):
-        self._toolbar = NavigationToolbar2Wx(self._canvas)
+        self._toolbar = NavigationToolbar(self._canvas)
 
         if wx.__version__ >= '2.9.1':
             self._toolbar.AddStretchableSpace()
@@ -119,6 +119,7 @@ class DialogSpectrum(wx.Dialog):
             self._spectrum.set_data(freqs, levels)
             self._axes.relim()
             self._axes.autoscale_view(True, True, True)
+            self._axes.autoscale(self._toolbar.get_autoscale())
 
             self._canvas.draw()
             delay = time.time() - t1

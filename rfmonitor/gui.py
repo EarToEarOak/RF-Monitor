@@ -311,7 +311,6 @@ class FrameMain(wx.Frame):
     def __on_event(self, event):
         if event.type == Events.SCAN_ERROR:
             self.__on_scan_error(event.data)
-
         elif event.type == Events.SCAN_DATA:
             self.__on_scan_data(event.data)
         elif event.type == Events.SERVER_ERROR:

@@ -61,7 +61,9 @@ class Receive(threading.Thread):
         ctypes.memmove(dst, data, len(data))
 
         iq = self.__stream_to_complex(self._capture)
-        l, f = psd(iq, BINS, SAMPLE_RATE, scale_by_freq=False)
+        l, f = psd(iq, BINS, SAMPLE_RATE,
+                   scale_by_freq=False,
+                   noverlap=-SAMPLES / 64)
         f /= 1e6
         f += self._freq
 

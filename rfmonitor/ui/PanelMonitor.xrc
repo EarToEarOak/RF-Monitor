@@ -1,108 +1,124 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
-	<object class="wxPanel" name="PanelMonitor">
-		<style>wxRAISED_BORDER|wxTAB_TRAVERSAL</style>
-		<object class="wxFlexGridSizer">
-			<rows>0</rows>
-			<cols>4</cols>
-			<vgap>0</vgap>
-			<hgap>0</hgap>
-			<growablecols>1</growablecols>
-			<growablerows></growablerows>
-			<object class="sizeritem">
-				<option>1</option>
-				<flag>wxEXPAND</flag>
-				<border>5</border>
-				<object class="wxBoxSizer">
-					<orient>wxVERTICAL</orient>
-					<object class="sizeritem">
+    <object class="wxPanel" name="PanelMonitor">
+        <style>wxRAISED_BORDER|wxTAB_TRAVERSAL</style>
+        <object class="wxFlexGridSizer">
+            <rows>0</rows>
+            <cols>4</cols>
+            <vgap>0</vgap>
+            <hgap>0</hgap>
+            <growablecols>1</growablecols>
+            <growablerows></growablerows>
+            <object class="sizeritem">
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL|wxEXPAND</flag>
+                        <border>5</border>
+                        <object class="wxPanel" name="panelColour">
+                            <size>5,-1</size>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
                         <option>1</option>
                         <flag>wxEXPAND</flag>
                         <border>5</border>
                         <object class="wxBoxSizer">
-                            <orient>wxHORIZONTAL</orient>
+                            <orient>wxVERTICAL</orient>
+                            <object class="sizeritem">
+                                <option>1</option>
+                                <flag>wxEXPAND</flag>
+                                <border>5</border>
+                                <object class="wxBoxSizer">
+                                    <orient>wxHORIZONTAL</orient>
+                                    <object class="sizeritem">
+                                        <option>0</option>
+                                        <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                                        <border>5</border>
+                                        <object class="wxCheckBox" name="checkEnable">
+                                            <tooltip>Enable monitor</tooltip>
+                                            <label>Enable</label>
+                                            <checked>0</checked>
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <option>0</option>
+                                        <flag>wxALL</flag>
+                                        <border>5</border>
+                                        <object class="wxCheckBox" name="checkAlert">
+                                            <tooltip>Audio alert</tooltip>
+                                            <label>Alert</label>
+                                            <checked>0</checked>
+                                        </object>
+                                    </object>
+                                </object>
+                            </object>
                             <object class="sizeritem">
                                 <option>0</option>
                                 <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                                 <border>5</border>
-                                <object class="wxCheckBox" name="checkEnable">
-                                    <tooltip>Enable monitor</tooltip>
-                                    <label>Enable</label>
-                                    <checked>0</checked>
+                                <object class="wxChoice" name="choiceFreq">
+                                    <tooltip>Frequency (MHz)</tooltip>
+                                    <selection>0</selection>
+                                    <content />
                                 </object>
                             </object>
                             <object class="sizeritem">
                                 <option>0</option>
                                 <flag>wxALL</flag>
                                 <border>5</border>
-                                <object class="wxCheckBox" name="checkAlert">
-                                    <tooltip>Audio alert</tooltip>
-                                    <label>Alert</label>
-                                    <checked>0</checked>
+                                <object class="wxStaticText" name="textSignals">
+                                    <label>Recorded:</label>
+                                    <wrap>-1</wrap>
                                 </object>
                             </object>
                         </object>
                     </object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALIGN_CENTER_VERTICAL|wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<object class="wxChoice" name="choiceFreq">
-							<tooltip>Frequency (MHz)</tooltip>
-							<selection>0</selection>
-							<content />
-						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALL</flag>
-						<border>5</border>
-						<object class="wxStaticText" name="textSignals">
-							<label>Recorded:</label>
-							<wrap>-1</wrap>
-						</object>
-					</object>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<option>1</option>
-				<flag>wxEXPAND</flag>
-				<border>5</border>
-				<object class="wxBoxSizer">
-					<orient>wxVERTICAL</orient>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<object class="WidgetMeter" name="meterLevel">
+                </object>
+            </object>
+            <object class="sizeritem">
+                <option>1</option>
+                <flag>wxEXPAND</flag>
+                <border>5</border>
+                <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL|wxEXPAND</flag>
+                        <border>5</border>
+                        <object class="WidgetMeter" name="widgetMeter">
 							<tooltip>Signal level (dB)</tooltip>
 						</object>
-					</object>
-					<object class="sizeritem">
-						<option>0</option>
-						<flag>wxALL|wxEXPAND</flag>
-						<border>5</border>
-						<object class="wxSlider" name="sliderThreshold">
-							<style>wxSL_HORIZONTAL</style>
-							<tooltip>Recording threshold (dB)</tooltip>
-							<value>-20</value>
-							<min>-60</min>
-							<max>10</max>
-						</object>
-					</object>
-				</object>
-			</object>
-			<object class="sizeritem">
-				<option>0</option>
-				<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-				<border>5</border>
-				<object class="wxButton" name="buttonDel">
-					<style>wxBU_EXACTFIT</style>
-					<tooltip>Remove</tooltip>
-					<label>-</label>
-					<default>0</default>
-				</object>
-			</object>
-		</object>
-	</object>
+                    </object>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALL|wxEXPAND</flag>
+                        <border>5</border>
+                        <object class="wxSlider" name="sliderThreshold">
+                            <style>wxSL_HORIZONTAL</style>
+                            <tooltip>Recording threshold (dB)</tooltip>
+                            <value>-20</value>
+                            <min>-60</min>
+                            <max>10</max>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <option>0</option>
+                <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                <border>5</border>
+                <object class="wxButton" name="buttonDel">
+                    <style>wxBU_EXACTFIT</style>
+                    <tooltip>Remove</tooltip>
+                    <label>-</label>
+                    <default>0</default>
+                </object>
+            </object>
+        </object>
+    </object>
 </resource>

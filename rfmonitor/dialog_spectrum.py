@@ -80,6 +80,7 @@ class DialogSpectrum(wx.Dialog):
         self._axes.set_ylabel('Level (dB)')
         self._axes.autoscale_view(True, True, True)
         self._axes.grid(True)
+
         self._spectrum, = self._axes.plot([], [], 'b-')
 
         self._canvas = FigureCanvas(self._panelPlot, -1, figure)
@@ -125,7 +126,15 @@ class DialogSpectrum(wx.Dialog):
 
             self.__clear_lines()
             for monitor in monitors:
-                self._axes.axvline(monitor, color='g', gid='line')
+                colour = monitor.get_colour()
+                self._axes.axvline(monitor.get_frequency(),
+                                   color=colour,
+                                   dashes=[2, 1],
+                                   gid='line')
+                self._axes.axhline(monitor.get_threshold(),
+                                   color=colour,
+                                   dashes=[2, 1],
+                                   gid='line')
 
             self._spectrum.set_data(freqs, levels)
             self._axes.relim()

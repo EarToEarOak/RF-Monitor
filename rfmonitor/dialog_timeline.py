@@ -146,7 +146,6 @@ class DialogTimeline(wx.Dialog):
 
             height = SAMPLE_RATE / BINS
             height /= 1e6
-            self._axes.set_color_cycle(None)
 
             self.__clear_plots()
             timeNow = epoch2num(time.time())
@@ -174,7 +173,7 @@ class DialogTimeline(wx.Dialog):
                     tMax = max(tMax, tEnd)
                     signals.append([tStart, tEnd - tStart])
 
-                colour = self._axes._get_lines.color_cycle.next()
+                colour = monitor.get_colour()
                 self._axes.broken_barh(periods, [freq - height / 2, height],
                                        color=colour,
                                        alpha=0.2,

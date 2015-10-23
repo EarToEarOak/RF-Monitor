@@ -33,7 +33,7 @@ from rfmonitor.events import post_event, Event, Events
 from rfmonitor.monitor import Monitor
 from rfmonitor.ui import load_ui
 from rfmonitor.utils import set_level
-from rfmonitor.widget_meter import XrcHandlerMeter
+from rfmonitor.widget_meter import XrcHandlerMeter, WidgetMeter
 from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 
@@ -45,6 +45,7 @@ class PanelMonitor(Monitor, wx.Panel):
         self._isRecording = False
         self._isRunning = False
         self._isLow = True
+        self._colour = None
 
         pre = wx.PrePanel()
         self._ui = load_ui('PanelMonitor.xrc')
@@ -57,13 +58,14 @@ class PanelMonitor(Monitor, wx.Panel):
         self._ui.LoadOnPanel(pre, parent, 'PanelMonitor')
         self.PostCreate(pre)
 
+        self._panelColour = xrc.XRCCTRL(pre, 'panelColour')
         self._checkEnable = xrc.XRCCTRL(pre, 'checkEnable')
         self._checkAlert = xrc.XRCCTRL(pre, 'checkAlert')
         self._choiceFreq = xrc.XRCCTRL(pre, 'choiceFreq')
         self._textSignals = xrc.XRCCTRL(pre, 'textSignals')
         # TODO: hackish
         for child in self.GetChildren():
-            if child.Name == 'panel':
+            if isinstance(child, WidgetMeter):
                 self._meterLevel = child
         self._sliderThreshold = xrc.XRCCTRL(pre, 'sliderThreshold')
         self._buttonDel = xrc.XRCCTRL(pre, 'buttonDel')
@@ -133,6 +135,9 @@ class PanelMonitor(Monitor, wx.Panel):
         label = 'Recorded: {:4d}'.format(signals)
         self._textSignals.SetLabel(label)
         self.__enable_freq()
+
+    def get_colour(self):
+        return self._colour
 
     def set_callback(self, on_del):
         self._on_del = on_del
@@ -210,6 +215,11 @@ class PanelMonitor(Monitor, wx.Panel):
     def set_signals(self, signals):
         self._signals = signals
         self.__set_records()
+
+    def set_colour(self, colour):
+        self._colour = colour
+        wxColour = [level * 255 for level in colour]
+        self._panelColour.SetBackgroundColour(wx.Colour(*wxColour))
 
     def clear(self):
         self._signals = []

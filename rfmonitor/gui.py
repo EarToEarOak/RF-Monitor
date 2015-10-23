@@ -27,6 +27,7 @@ import os
 import sys
 import time
 
+from matplotlib import cm
 from matplotlib.mlab import psd
 import numpy
 from rtlsdr.rtlsdr import RtlSdr
@@ -48,6 +49,9 @@ from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
 from rfmonitor.ui import load_ui, load_sound
+
+
+COLOURS = 15
 
 
 class RfMonitor(wx.App):
@@ -72,6 +76,9 @@ class FrameMain(wx.Frame):
         self._gps = None
         self._location = None
         self._isSaved = True
+
+        cmap = cm.get_cmap('Set1')
+        self._colours = [cmap(float(i) / COLOURS) for i in range(COLOURS)]
 
         self._ui = load_ui('FrameMain.xrc')
 
@@ -204,6 +211,9 @@ class FrameMain(wx.Frame):
 
         self._isSaved = False
         self.__set_title()
+
+        scroll = self._window.GetScrollRange(wx.VERTICAL)
+        self._window.Scroll(0, scroll)
 
     def __on_del(self, monitor):
         index = self._monitors.index(monitor)
@@ -369,8 +379,7 @@ class FrameMain(wx.Frame):
                 self.__set_timeline()
 
         if self._dialogSpectrum is not None:
-            monitors = [monitor.get_frequency()
-                        for monitor in self._monitors
+            monitors = [monitor for monitor in self._monitors
                         if monitor.get_enabled()]
             self._dialogSpectrum.set_spectrum(self._freqs,
                                               self._levels,
@@ -473,6 +482,9 @@ class FrameMain(wx.Frame):
         self._frame.Layout()
 
     def __add_monitor(self, monitor):
+        colour = len(self._monitors) % COLOURS
+        monitor.set_colour(self._colours[colour])
+
         self._toolbar.enable_freq(False)
 
         self._monitors.append(monitor)

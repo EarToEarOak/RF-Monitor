@@ -93,6 +93,8 @@ class Cli(wx.EvtHandler):
         while not self._cancel:
             if not self._queue.empty():
                 self.__on_event()
+            else:
+                time.sleep(0.001)
 
         self.__stop(freq, gain)
 

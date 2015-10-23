@@ -113,6 +113,8 @@ class FrameMain(wx.Frame):
         self._toolbar.set_gain(self._settings.get_gain())
         self._toolbar.set_cal(self._settings.get_cal())
 
+        self.__on_freq(self._settings.get_freq())
+
         self._server = Server(self._frame)
 
         self.__start_gps()

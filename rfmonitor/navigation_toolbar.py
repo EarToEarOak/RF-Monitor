@@ -32,16 +32,24 @@ class NavigationToolbar(NavigationToolbar2Wx):
         self._canvas = canvas
         self._autoScale = True
 
+    def back(self, *args):
+        NavigationToolbar2Wx.back(self, *args)
+        self._autoScale = False
+
+    def forward(self, *args):
+        NavigationToolbar2Wx.forward(self, *args)
+        self._autoScale = False
+
     def home(self, *args):
         NavigationToolbar2Wx.home(self, *args)
         self._autoScale = True
 
-    def pan(self, *args):
-        NavigationToolbar2Wx.pan(self, *args)
+    def press_pan(self, *args):
+        NavigationToolbar2Wx.press_pan(self, *args)
         self._autoScale = False
 
-    def zoom(self, *args):
-        NavigationToolbar2Wx.zoom(self, *args)
+    def press_zoom(self, *args):
+        NavigationToolbar2Wx.press_zoom(self, *args)
         self._autoScale = False
 
     def get_autoscale(self):

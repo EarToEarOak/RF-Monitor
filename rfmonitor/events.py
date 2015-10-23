@@ -36,7 +36,8 @@ class Events(object):
     SCAN_ERROR, SCAN_DATA, \
         SERVER_ERROR, \
         GPS_ERROR, GPS_WARN, GPS_TIMEOUT, GPS_LOC, GPS_SATS, \
-        MON_ALERT, MON_CHANGED = range(10)
+        CHANGED, \
+        MON_ALERT = range(10)
 
 
 class Event(wx.PyEvent):

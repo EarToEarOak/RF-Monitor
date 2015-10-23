@@ -344,7 +344,7 @@ class FrameMain(wx.Frame):
             if now - self._alertLast >= ALERT_LENGTH:
                 self._alertLast = now
                 self._alert.Play()
-        elif event.type == Events.MON_CHANGED:
+        elif event.type == Events.CHANGED:
             self._isSaved = False
             self.__set_title()
 

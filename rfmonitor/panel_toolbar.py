@@ -27,6 +27,7 @@ from wx import xrc
 import wx
 from wx.lib import masked
 
+from rfmonitor.events import Event, Events, post_event
 from rfmonitor.ui import load_ui
 from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
@@ -70,13 +71,20 @@ class PanelToolbar(wx.Panel):
         self._on_add = None
 
         self.Bind(masked.EVT_NUM, self.__on_freq, self._numFreq)
+        self.Bind(wx.EVT_CHOICE, self.__on_change, self._choiceGain)
+        self.Bind(masked.EVT_NUM, self.__on_change, self._numCal)
         self.Bind(wx.EVT_BUTTON, self.__on_start, self._buttonStart)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.__on_rec, self._buttonRec)
         self.Bind(wx.EVT_BUTTON, self.__on_stop, self._buttonStop)
         self.Bind(wx.EVT_BUTTON, self.__on_add, self._buttonAdd)
 
+    def __on_change(self, _event=None):
+        event = Event(Events.CHANGED)
+        post_event(self._parent, event)
+
     def __on_freq(self, _event):
         self._on_freq(self._numFreq.GetValue())
+        self.__on_change()
 
     def __on_start(self, _event):
         self.enable_start(False)
@@ -122,7 +130,9 @@ class PanelToolbar(wx.Panel):
         self._buttonStop.Enable(not enable)
 
     def set_freq(self, freq):
+        self.SetEvtHandlerEnabled(False)
         self._numFreq.SetValue(freq)
+        self.SetEvtHandlerEnabled(True)
 
     def get_freq(self):
         return self._numFreq.GetValue()
@@ -134,18 +144,22 @@ class PanelToolbar(wx.Panel):
         self._choiceGain.SetSelection(len(gains) / 2)
 
     def set_gain(self, gain):
+        self.SetEvtHandlerEnabled(False)
         gains = map(float, self._choiceGain.GetItems())
         try:
             self._choiceGain.SetSelection(gains.index(gain))
         except ValueError:
             self._choiceGain.SetSelection(len(gains) / 2)
+        self.SetEvtHandlerEnabled(True)
 
     def get_gain(self):
         index = self._choiceGain.GetSelection()
         return float(self._choiceGain.GetItems()[index])
 
     def set_cal(self, cal):
+        self.SetEvtHandlerEnabled(False)
         self._numCal.SetValue(cal)
+        self.SetEvtHandlerEnabled(True)
 
     def get_cal(self):
         return self._numCal.GetValue()

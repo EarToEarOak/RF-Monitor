@@ -61,7 +61,7 @@ class Cli(wx.EvtHandler):
         self._queue = Queue.Queue()
 
         try:
-            freq, gain, monitors = load_recordings(self._filename)
+            freq, gain, cal, monitors = load_recordings(self._filename)
         except ValueError:
             msg = '\'' + os.path.split(self._filename)[1] + '\' is corrupt.'
             self.__std_err(msg)
@@ -88,7 +88,7 @@ class Cli(wx.EvtHandler):
 
         self.__start_gps()
 
-        self.__start(freq, gain)
+        self.__start(freq, gain, cal)
 
         while not self._cancel:
             if not self._queue.empty():
@@ -96,12 +96,13 @@ class Cli(wx.EvtHandler):
             else:
                 time.sleep(0.001)
 
-        self.__stop(freq, gain)
+        self.__stop(freq, gain, cal)
 
-    def __save(self, freq, gain):
+    def __save(self, freq, gain, cal):
         save_recordings(self._filename,
                         freq,
                         gain,
+                        cal,
                         self._monitors)
 
     def __is_saved(self):
@@ -152,7 +153,7 @@ class Cli(wx.EvtHandler):
         timer = Timer(GPS_RETRY, self.__start_gps)
         timer.start()
 
-    def __start(self, freq, gain):
+    def __start(self, freq, gain, cal):
         self.__std_out('Monitoring...')
 
         timestamp = time.time()
@@ -160,9 +161,10 @@ class Cli(wx.EvtHandler):
             monitor.start_period(timestamp)
         self._receive = Receive(self._queue,
                                 freq,
-                                gain)
+                                gain,
+                                cal)
 
-    def __stop(self, freq, gain):
+    def __stop(self, freq, gain, cal):
         self.__std_out('\nStopping...')
 
         if self._receive is not None:
@@ -178,7 +180,7 @@ class Cli(wx.EvtHandler):
 
         if not self.__is_saved():
             self.__std_out('Saving..')
-            self.__save(freq, gain)
+            self.__save(freq, gain, cal)
 
         self.__std_out('Finished')
 

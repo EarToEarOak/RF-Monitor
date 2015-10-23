@@ -29,18 +29,12 @@ from rfmonitor.gps import GpsDevice
 
 
 class Settings(object):
-    class Monitor(object):
-        def __init__(self):
-            self.enabled = False
-            self.freq = 0
-            self.threshold = 0
-            self.signals = []
-
     def __init__(self):
         self._config = wx.Config('rf-monitor')
 
         self._freq = 118.0
         self._gain = 0
+        self._cal = 0
         self._gps = GpsDevice()
 
         self.__load()
@@ -49,6 +43,7 @@ class Settings(object):
         self._config.SetPath('/')
         self._freq = self._config.ReadFloat('frequency', self._freq)
         self._gain = self._config.ReadFloat('gain', self._gain)
+        self._cal = self._config.ReadInt('calibration', self._cal)
 
         self._config.SetPath('/Gps')
         self._gps.enabled = self._config.ReadBool('enabled', self._gps.enabled)
@@ -65,11 +60,17 @@ class Settings(object):
     def set_gain(self, gain):
         self._gain = gain
 
+    def set_cal(self, cal):
+        self._cal = cal
+
     def get_freq(self):
         return self._freq
 
     def get_gain(self):
         return self._gain
+
+    def get_cal(self):
+        return self._cal
 
     def get_gps(self):
         return self._gps
@@ -78,6 +79,7 @@ class Settings(object):
         self._config.SetPath('/')
         self._config.WriteFloat('frequency', self._freq)
         self._config.WriteFloat('gain', self._gain)
+        self._config.WriteInt('calibration', self._cal)
 
         self._config.SetPath('/Gps')
         self._config.WriteBool('enabled', self._gps.enabled)

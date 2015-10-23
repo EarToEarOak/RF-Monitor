@@ -34,8 +34,8 @@ class XrcHandlerNumCtrl(xrc.XmlResourceHandler):
         return self.IsOfClass(node, 'NumCtrl')
 
     def DoCreateResource(self):
-        integerWidth = int(self.GetParamValue('integerWidth')) if self.HasParam('integerWidth') else 4
-        fractionWidth = int(self.GetParamValue('fractionWidth')) if self.HasParam('fractionWidth') else 3
+        integerWidth = int(self.GetParamValue('integerwidth')) if self.HasParam('integerwidth') else 4
+        fractionWidth = int(self.GetParamValue('fractionwidth')) if self.HasParam('fractionwidth') else 3
 
         ctrl = masked.NumCtrl(
                 self.GetParentAsWindow(),
@@ -45,7 +45,7 @@ class XrcHandlerNumCtrl(xrc.XmlResourceHandler):
                 fractionWidth=fractionWidth,
                 groupChar=' ',
                 allowNone=False,
-                decimalChar=locale.localeconv()['decimal_point'],)
+                decimalChar=locale.localeconv()['decimal_point'])
         self.SetupWindow(ctrl)
         self.CreateChildren(ctrl)
 

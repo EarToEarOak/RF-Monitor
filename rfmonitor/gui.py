@@ -111,6 +111,7 @@ class FrameMain(wx.Frame):
         self._toolbar.set_freq(self._settings.get_freq())
         self._toolbar.set_gains(gains)
         self._toolbar.set_gain(self._settings.get_gain())
+        self._toolbar.set_cal(self._settings.get_cal())
 
         self._server = Server(self._frame)
 
@@ -175,7 +176,8 @@ class FrameMain(wx.Frame):
         if self._receive is None:
             self._receive = Receive(self._frame,
                                     self._toolbar.get_freq(),
-                                    self._toolbar.get_gain())
+                                    self._toolbar.get_gain(),
+                                    self._toolbar.get_cal())
 
     def __on_rec(self, recording):
         if recording:
@@ -407,6 +409,7 @@ class FrameMain(wx.Frame):
     def __update_settings(self):
         self._settings.set_freq(self._toolbar.get_freq())
         self._settings.set_gain(self._toolbar.get_gain())
+        self._settings.set_cal(self._toolbar.get_cal())
 
     def __save(self, prompt):
         if prompt or self._filename is None:
@@ -426,6 +429,7 @@ class FrameMain(wx.Frame):
         save_recordings(self._filename,
                         self._settings.get_freq(),
                         self._settings.get_gain(),
+                        self._settings.get_cal(),
                         self._monitors)
         self.__set_title()
 
@@ -443,7 +447,7 @@ class FrameMain(wx.Frame):
 
     def open(self, filename):
         try:
-            freq, gain, monitors = load_recordings(filename)
+            freq, gain, cal, monitors = load_recordings(filename)
         except ValueError:
             msg = '\'' + os.path.split(filename)[1] + '\' is corrupt.'
             wx.MessageBox(msg, 'Error',
@@ -454,6 +458,7 @@ class FrameMain(wx.Frame):
         self.__set_title()
         self._toolbar.set_freq(freq)
         self._toolbar.set_gain(gain)
+        self._toolbar.set_cal(cal)
         self.__clear_monitors()
         self.__add_monitors(monitors)
         self.__enable_controls(True)

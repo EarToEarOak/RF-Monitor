@@ -34,7 +34,7 @@ from rfmonitor.signals import Signal
 VERSION = 1
 
 
-def save_recordings(filename, freq, gain, monitors):
+def save_recordings(filename, freq, gain, cal, monitors):
 
     jsonMonitors = []
     for monitor in monitors:
@@ -53,6 +53,7 @@ def save_recordings(filename, freq, gain, monitors):
     fileData['Version'] = VERSION
     fileData['Frequency'] = freq * 1e6
     fileData['Gain'] = gain
+    fileData['Calibration'] = cal
     fileData['Monitors'] = jsonMonitors
 
     data = [APP_NAME, fileData]
@@ -71,6 +72,7 @@ def load_recordings(filename):
     _version = data[1]['Version']
     freq = data[1]['Frequency'] / 1e6
     gain = data[1]['Gain'] if 'Gain' in data[1] else None
+    cal = data[1]['Calibration'] if 'Calibration' in data[1] else 0
     jsonMonitors = data[1]['Monitors']
 
     monitors = []
@@ -90,7 +92,7 @@ def load_recordings(filename):
                           periods)
         monitors.append(monitor)
 
-    return freq, gain, monitors
+    return freq, gain, cal, monitors
 
 
 def format_recording(freq, recording):

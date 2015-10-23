@@ -4,7 +4,7 @@
 		<style>wxSIMPLE_BORDER|wxTAB_TRAVERSAL</style>
 		<object class="wxFlexGridSizer">
 			<rows>0</rows>
-			<cols>11</cols>
+			<cols>0</cols>
 			<vgap>0</vgap>
 			<hgap>0</hgap>
 			<growablecols>9</growablecols>
@@ -19,7 +19,7 @@
 			</object>
 			<object class="sizeritem">
 				<option>0</option>
-				<flag>wxALIGN_CENTER_VERTICAL</flag>
+				<flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
 				<border>5</border>
 				<object class="wxStaticText" name="text1">
 					<label>MHz</label>
@@ -38,13 +38,31 @@
 			</object>
 			<object class="sizeritem">
 				<option>0</option>
-				<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+				<flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
 				<border>5</border>
 				<object class="wxStaticText" name="text2">
 					<label>dB</label>
 					<wrap>-1</wrap>
 				</object>
 			</object>
+			<object class="sizeritem">
+                <option>0</option>
+                <flag>wxALL|wxEXPAND</flag>
+                <border>5</border>
+                <object class="NumCtrl" name="ctrlCal">
+                    <fractionwidth>0</fractionwidth>
+                    <tooltip>Calibration (ppm)</tooltip>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <option>0</option>
+                <flag>wxALIGN_CENTER_VERTICAL|wxRIGHT</flag>
+                <border>5</border>
+                <object class="wxStaticText" name="text3">
+                    <label>ppm</label>
+                    <wrap>-1</wrap>
+                </object>
+            </object>
 			<object class="sizeritem">
 				<option>0</option>
 				<flag>wxEXPAND | wxALL</flag>

@@ -46,6 +46,7 @@ class PanelToolbar(wx.Panel):
 
         self._numFreq = xrc.XRCCTRL(pre, 'ctrlFreq')
         self._choiceGain = xrc.XRCCTRL(pre, 'choiceGain')
+        self._numCal = xrc.XRCCTRL(pre, 'ctrlCal')
         self._buttonStart = xrc.XRCCTRL(pre, 'buttonStart')
         self._buttonRec = xrc.XRCCTRL(pre, 'buttonRecord')
         self._buttonStop = xrc.XRCCTRL(pre, 'buttonStop')
@@ -55,6 +56,12 @@ class PanelToolbar(wx.Panel):
         self._numFreq.SetMax(9999)
         self._numFreq.SetAllowNone(False)
         self._numFreq.SetLimited(True)
+
+        self._numCal.SetAllowNegative(True)
+        self._numCal.SetMin(-1000)
+        self._numCal.SetMax(1000)
+        self._numCal.SetAllowNone(False)
+        self._numCal.SetLimited(True)
 
         self._on_freq = None
         self._on_start = None
@@ -110,6 +117,7 @@ class PanelToolbar(wx.Panel):
 
     def enable_start(self, enable):
         self._choiceGain.Enable(enable)
+        self._numCal.Enable(enable)
         self._buttonStart.Enable(enable)
         self._buttonStop.Enable(not enable)
 
@@ -135,6 +143,12 @@ class PanelToolbar(wx.Panel):
     def get_gain(self):
         index = self._choiceGain.GetSelection()
         return float(self._choiceGain.GetItems()[index])
+
+    def set_cal(self, cal):
+        self._numCal.SetValue(cal)
+
+    def get_cal(self):
+        return self._numCal.GetValue()
 
 
 class XrcHandlerToolbar(xrc.XmlResourceHandler):

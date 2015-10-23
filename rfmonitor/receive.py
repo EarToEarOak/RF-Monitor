@@ -36,7 +36,7 @@ from rfmonitor.events import Event, Events, post_event
 
 
 class Receive(threading.Thread):
-    def __init__(self, eventHandler, freq, gain):
+    def __init__(self, eventHandler, freq, gain, cal):
         threading.Thread.__init__(self)
         self.name = 'Receive'
         self.daemon = True
@@ -44,6 +44,7 @@ class Receive(threading.Thread):
         self._cancel = False
         self._freq = freq
         self._gain = gain
+        self._cal = cal
         self._eventHandler = eventHandler
         self._sdr = None
         self._capture = (ctypes.c_ubyte * SAMPLES)()
@@ -86,6 +87,10 @@ class Receive(threading.Thread):
         self._sdr = rtlsdr.RtlSdr()
         self._sdr.set_sample_rate(SAMPLE_RATE)
         self.set_frequency(self._freq)
+        # TODO: Fudge
+        if self._cal == 0:
+            self._cal = 1
+        self._sdr.set_freq_correction(self._cal)
         self._sdr.set_gain(self._gain)
         time.sleep(1)
 

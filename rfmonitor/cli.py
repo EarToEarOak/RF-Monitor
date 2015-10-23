@@ -94,7 +94,10 @@ class Cli(wx.EvtHandler):
             if not self._queue.empty():
                 self.__on_event()
             else:
-                time.sleep(0.001)
+                try:
+                    time.sleep(0.001)
+                except IOError:
+                    pass
 
         self.__stop(freq, gain, cal)
 

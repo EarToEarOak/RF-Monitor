@@ -24,6 +24,7 @@
 #
 
 import Queue
+import os
 import signal
 import sys
 from threading import Timer
@@ -49,6 +50,8 @@ class Cli(wx.EvtHandler):
         self._freqs = []
         self._location = None
         self._filename = args.file
+        self._server = None
+        self._gps = None
         self._gpsPort = args.port
         self._gpsBaud = args.baud
         self._json = args.json
@@ -57,7 +60,20 @@ class Cli(wx.EvtHandler):
 
         self._queue = Queue.Queue()
 
-        freq, gain, monitors = load_recordings(self._filename)
+        try:
+            freq, gain, monitors = load_recordings(self._filename)
+        except ValueError:
+            msg = '\'' + os.path.split(self._filename)[1] + '\' is corrupt.'
+            self.__std_err(msg)
+            self.__stop(None, None)
+            exit(1)
+
+        enabled = [monitor for monitor in monitors
+                   if monitor.get_enabled()]
+        if not len(enabled):
+            self.__std_err('No monitors enabled')
+            self.__stop(None, None)
+            exit(1)
 
         self.__std_out('Frequency: {}MHz'.format(freq))
         self.__std_out('Gain: {}dB\n'.format(gain))
@@ -70,7 +86,6 @@ class Cli(wx.EvtHandler):
 
         self._server = Server(self._queue)
 
-        self._gps = None
         self.__start_gps()
 
         self.__start(freq, gain)
@@ -148,7 +163,8 @@ class Cli(wx.EvtHandler):
     def __stop(self, freq, gain):
         self.__std_out('\nStopping...')
 
-        self._receive.stop()
+        if self._receive is not None:
+            self._receive.stop()
         timestamp = time.time()
         for monitor in self._monitors:
             monitor.set_level(None, timestamp, None)
@@ -215,16 +231,16 @@ class Cli(wx.EvtHandler):
                                            event['timestamp'],
                                            self._location)
 
-            if signal is not None:
-                signals = 'Signals: {}\r'.format(self.__count_signals() -
-                                                 self._signalCount)
-                self.__std_out(signals, False)
-                if signal.end is not None:
-                    recording = format_recording(freq, signal)
-                    if self._server is not None:
-                        self._server.send(recording)
-                    if self._json:
-                        sys.stdout.write(recording + '\n')
+                if signal is not None:
+                    signals = 'Signals: {}\r'.format(self.__count_signals() -
+                                                     self._signalCount)
+                    self.__std_out(signals, False)
+                    if signal.end is not None:
+                        recording = format_recording(freq, signal)
+                        if self._server is not None:
+                            self._server.send(recording)
+                        if self._json:
+                            sys.stdout.write(recording + '\n')
 
     def __on_server_error(self, event):
         self.__std_err(event['msg'])

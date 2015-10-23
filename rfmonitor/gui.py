@@ -433,7 +433,13 @@ class FrameMain(wx.Frame):
         return True
 
     def open(self, filename):
-        freq, gain, monitors = load_recordings(filename)
+        try:
+            freq, gain, monitors = load_recordings(filename)
+        except ValueError:
+            msg = '\'' + os.path.split(filename)[1] + '\' is corrupt.'
+            wx.MessageBox(msg, 'Error',
+                          wx.OK | wx.ICON_ERROR)
+            return
 
         self._filename = filename
         self.__set_title()

@@ -163,6 +163,8 @@ class FrameMain(wx.Frame):
 
         self._frame.Show()
 
+        self.__clear_levels()
+
     def __on_freq(self, freq):
         _l, freqs = psd(numpy.zeros(2, dtype=numpy.complex64),
                         BINS, SAMPLE_RATE)
@@ -200,8 +202,7 @@ class FrameMain(wx.Frame):
             self._receive = None
         for monitor in self._monitors:
             monitor.set_level(LEVEL_MIN, 0, None)
-        if self._dialogSpectrum is not None:
-            self._dialogSpectrum.clear_spectrum()
+        self.__clear_levels()
 
     def __on_add(self):
         monitor = PanelMonitor(self._window, self._frame)
@@ -213,6 +214,8 @@ class FrameMain(wx.Frame):
 
         self._frame.Layout()
 
+        self.__set_timeline()
+        self.__set_spectrum()
         self._isSaved = False
         self.__set_title()
 
@@ -229,6 +232,8 @@ class FrameMain(wx.Frame):
 
         self._toolbar.enable_freq(not len(self._monitors))
 
+        self.__set_timeline()
+        self.__set_spectrum()
         self._isSaved = False
         self.__set_title()
 
@@ -293,6 +298,7 @@ class FrameMain(wx.Frame):
         if event.IsChecked() and self._dialogSpectrum is None:
             self._dialogSpectrum = DialogSpectrum(self._frame,
                                                   self._freqs)
+            self.__set_spectrum()
             self._dialogSpectrum.Show()
         elif self._dialogSpectrum is not None:
             self._dialogSpectrum.Destroy()
@@ -348,6 +354,8 @@ class FrameMain(wx.Frame):
                 self._alert.Play()
         elif event.type == Events.CHANGED:
             self._isSaved = False
+            self.__set_timeline()
+            self.__set_spectrum()
             self.__set_title()
 
     def __on_scan_error(self, event):
@@ -359,8 +367,11 @@ class FrameMain(wx.Frame):
         levels = numpy.log10(event['l'])
         levels *= 10
 
-        self._levels += levels
-        self._levels /= 2.
+        if numpy.isnan(self._levels[0]):
+            self._levels = levels
+        else:
+            self._levels += levels
+            self._levels /= 2.
 
         updated = False
         for monitor in self._monitors:
@@ -382,13 +393,7 @@ class FrameMain(wx.Frame):
                 self.__set_title()
                 self.__set_timeline()
 
-        if self._dialogSpectrum is not None:
-            monitors = [monitor for monitor in self._monitors
-                        if monitor.get_enabled()]
-            self._dialogSpectrum.set_spectrum(self._freqs,
-                                              self._levels,
-                                              event['timestamp'],
-                                              monitors)
+        self.__set_spectrum()
 
     def __on_server_error(self, event):
         sys.stderr.write(event['msg'])
@@ -465,6 +470,7 @@ class FrameMain(wx.Frame):
         self.__add_monitors(monitors)
         self.__enable_controls(True)
         self.__set_timeline()
+        self.__set_spectrum()
         self._isSaved = True
 
     def __enable_controls(self, enable):
@@ -487,6 +493,8 @@ class FrameMain(wx.Frame):
             self.__add_monitor(panelMonitor)
 
         self._frame.Layout()
+
+        self.__set_spectrum()
 
     def __add_monitor(self, monitor):
         colour = len(self._monitors) % COLOURS
@@ -521,6 +529,18 @@ class FrameMain(wx.Frame):
         if self._dialogTimeline is not None:
             self._dialogTimeline.set_monitors(monitors,
                                               self._toolbar.is_recording())
+
+    def __set_spectrum(self):
+        if self._dialogSpectrum is not None:
+            monitors = [monitor for monitor in self._monitors
+                        if monitor.get_enabled()]
+            self._dialogSpectrum.set_spectrum(self._freqs,
+                                              self._levels,
+                                              monitors)
+
+    def __clear_levels(self):
+        self._levels.fill(numpy.NaN)
+        self.__set_spectrum()
 
     def __start_gps(self):
         if self._gps is None and self._settings.get_gps().enabled:

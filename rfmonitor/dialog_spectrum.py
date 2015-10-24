@@ -72,7 +72,7 @@ class DialogSpectrum(wx.Dialog):
         self.Fit()
 
     def __setup_plot(self):
-        figure = Figure()
+        figure = Figure(facecolor='lightgrey')
 
         self._axes = figure.add_subplot(111)
         self._axes.set_title('Spectrum')
@@ -95,7 +95,7 @@ class DialogSpectrum(wx.Dialog):
             self._toolbar.AddSeparator()
         self._textFreq = wx.StaticText(self._toolbar, label='          ')
         font = self._textFreq.GetFont()
-        font.SetFamily(wx.FONTFAMILY_MODERN)
+        font.SetFamily(wx.FONTFAMILY_TELETYPE)
         self._textFreq.SetFont(font)
         self._toolbar.AddControl(self._textFreq)
         self._toolbar.Realize()
@@ -118,7 +118,8 @@ class DialogSpectrum(wx.Dialog):
             if gid is not None and gid == 'line':
                 child.remove()
 
-    def set_spectrum(self, freqs, levels, timestamp, monitors):
+    def set_spectrum(self, freqs, levels, monitors):
+        timestamp = time.time()
         self._freqs = freqs
         if timestamp - self._timestamp > self._delayDraw:
             t1 = time.time()

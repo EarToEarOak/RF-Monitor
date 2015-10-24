@@ -79,7 +79,7 @@ class DialogTimeline(wx.Dialog):
         self.Bind(wx.EVT_TIMER, self.__on_timer, self._timer)
 
     def __setup_plot(self):
-        figure = Figure()
+        figure = Figure(facecolor='lightgrey')
 
         self._axes = figure.add_subplot(111)
         self._axes.set_title('Timeline')
@@ -106,7 +106,7 @@ class DialogTimeline(wx.Dialog):
             self._toolbar.AddSeparator()
         self._textFreq = wx.StaticText(self._toolbar, label='                ')
         font = self._textFreq.GetFont()
-        font.SetFamily(wx.FONTFAMILY_MODERN)
+        font.SetFamily(wx.FONTFAMILY_TELETYPE)
         self._textFreq.SetFont(font)
         self._toolbar.AddControl(self._textFreq)
         self._toolbar.Realize()

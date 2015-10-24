@@ -41,7 +41,8 @@ class WidgetMeter(wx.Panel):
         self._threshold = LEVEL_MIN
 
         font = self.GetFont()
-        font.SetPixelSize((6, 8))
+        font.SetFamily(wx.FONTFAMILY_SWISS)
+        font.SetPixelSize((0, 8))
         self.SetFont(font)
 
         self.Bind(wx.EVT_PAINT, self.__on_paint)

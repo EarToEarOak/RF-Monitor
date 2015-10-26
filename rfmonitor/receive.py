@@ -87,10 +87,9 @@ class Receive(threading.Thread):
         self._sdr = rtlsdr.RtlSdr()
         self._sdr.set_sample_rate(SAMPLE_RATE)
         self.set_frequency(self._freq)
-        # TODO: Fudge
-        if self._cal == 0:
-            self._cal = 1
-        self._sdr.set_freq_correction(self._cal)
+        cal = self._sdr.get_freq_correction()
+        if self._cal != cal:
+            self._sdr.set_freq_correction(self._cal)
         self._sdr.set_gain(self._gain)
         time.sleep(1)
 

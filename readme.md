@@ -75,7 +75,15 @@ The application will begin recording signals, press Ctrl-C to exit it.
 
 To use GPS add the port using '-p' and the baud rate with '-b'
 
-`python rfmonitor.py -p <serial port> -b <baud> -c savedfile.rfmon`
+`python rfmonitor.py -p <serial port> -b <baud> -c <savedfile.rfmon>`
+
+For example on Windows:
+
+`python rfmonitor.py -p COM4 -b 115200 -c savedfile.rfmon`
+
+or Linux
+
+`python rfmonitor.py -p /dev/ttyUSB0 -b 115200 -c savedfile.rfmon`
 
 
 ##License##

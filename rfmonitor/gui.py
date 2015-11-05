@@ -93,6 +93,8 @@ class FrameMain(wx.Frame):
 
         self._sizerWindow = self._window.GetSizer()
 
+        self.__set__icon()
+
         try:
             sdr = RtlSdr()
             gains = sdr.get_gains()
@@ -412,6 +414,19 @@ class FrameMain(wx.Frame):
         if not self._isSaved:
             title += '*'
         self._frame.SetTitle(title)
+
+    def __set__icon(self):
+        path = os.path.dirname(os.path.realpath(sys.argv[0]))
+        path = os.path.join(path, 'rfmonitor', 'ui', 'logo.png')
+
+        icon = wx.EmptyIcon()
+        icon.CopyFromBitmap(wx.Bitmap(path, wx. wx.BITMAP_TYPE_PNG))
+        self._frame.SetIcon(icon)
+
+        if os.name == 'nt':
+            import ctypes
+            appId = u'com.eartoearoak.0.0'
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appId)
 
     def __update_settings(self):
         self._settings.set_freq(self._toolbar.get_freq())

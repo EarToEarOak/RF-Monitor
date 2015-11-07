@@ -513,13 +513,24 @@ class FrameMain(wx.Frame):
         self.__set_spectrum()
 
     def __add_monitor(self, monitor):
-        colour = len(self._monitors) % COLOURS
-        monitor.set_colour(self._colours[colour])
+        colours = self.__get_used_colours()
+        if len(colours):
+            colour = colours[0]
+        else:
+            index = len(self._monitors) % COLOURS
+            colour = self._colours[index]
+        monitor.set_colour(colour)
 
         self._toolbar.enable_freq(False)
 
         self._monitors.append(monitor)
         self._sizerWindow.Add(monitor, 0, wx.ALL | wx.EXPAND, 5)
+
+    def __get_used_colours(self):
+        colours = []
+        for monitor in self._monitors:
+            colours.append(monitor.get_colour())
+        return [x for x in self._colours if x not in colours]
 
     def __clear_monitors(self):
         for _i in range(len(self._monitors)):

@@ -274,6 +274,7 @@ class FrameMain(wx.Frame):
         for monitor in self._monitors:
             monitor.clear()
 
+        self.__set_timeline()
         self._isSaved = False
         self.__set_title()
 

@@ -48,7 +48,7 @@ from rfmonitor.panel_toolbar import XrcHandlerToolbar
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
-from rfmonitor.ui import load_ui, load_sound
+from rfmonitor.ui import load_ui, load_sound, load_icon
 
 
 COLOURS = 15
@@ -93,7 +93,7 @@ class FrameMain(wx.Frame):
 
         self._sizerWindow = self._window.GetSizer()
 
-        self.__set__icon()
+        self.__set_icon()
 
         try:
             sdr = RtlSdr()
@@ -416,12 +416,8 @@ class FrameMain(wx.Frame):
             title += '*'
         self._frame.SetTitle(title)
 
-    def __set__icon(self):
-        path = os.path.dirname(os.path.realpath(sys.argv[0]))
-        path = os.path.join(path, 'rfmonitor', 'ui', 'logo.png')
-
-        icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(wx.Bitmap(path, wx. wx.BITMAP_TYPE_PNG))
+    def __set_icon(self):
+        icon = load_icon('logo.png')
         self._frame.SetIcon(icon)
 
         if os.name == 'nt':

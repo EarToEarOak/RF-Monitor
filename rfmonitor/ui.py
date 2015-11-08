@@ -26,7 +26,8 @@
 import os
 import sys
 
-from wx import xrc, Sound
+from wx import xrc
+import wx
 
 
 def __get_ui_dir():
@@ -37,13 +38,32 @@ def __get_ui_dir():
 
 
 def load_ui(filename):
-    ui = os.path.join(__get_ui_dir(), filename)
-    return xrc.XmlResource(ui)
+    path = os.path.join(__get_ui_dir(), filename)
+    return xrc.XmlResource(path)
 
 
 def load_sound(filename):
-    sound = os.path.join(__get_ui_dir(), filename)
-    return Sound(sound)
+    path = os.path.join(__get_ui_dir(), filename)
+    return wx.Sound(path)
+
+
+def load_bitmap(filename, size=None):
+    path = os.path.join(__get_ui_dir(), filename)
+    bitmap = wx.Bitmap(path, wx.BITMAP_TYPE_PNG)
+    if size is not None:
+        image = wx.ImageFromBitmap(bitmap)
+        image.Rescale(size.GetWidth(), size.GetHeight(),
+                      wx.IMAGE_QUALITY_HIGH)
+        bitmap = image.ConvertToBitmap()
+
+    return bitmap
+
+
+def load_icon(filename):
+    icon = wx.EmptyIcon()
+    bitmap = load_bitmap(filename)
+    icon.CopyFromBitmap(bitmap)
+    return icon
 
 
 if __name__ == '__main__':

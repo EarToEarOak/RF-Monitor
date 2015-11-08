@@ -23,10 +23,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+import sys
+
 from wx import xrc
 import wx
 
-from rfmonitor.ui import load_ui
+from rfmonitor.ui import load_ui, load_bitmap
 
 
 class DialogAbout(wx.Dialog):
@@ -35,6 +38,10 @@ class DialogAbout(wx.Dialog):
         self._ui = load_ui('DialogAbout.xrc')
         self._ui.LoadOnDialog(pre, parent, 'DialogAbout')
         self.PostCreate(pre)
+
+        bitmap = xrc.XRCCTRL(pre, 'bitmap')
+        image = load_bitmap('logo.png', bitmap.GetClientSize())
+        bitmap.SetBitmap(image)
 
         self._buttonOk = xrc.XRCCTRL(pre, 'buttonOk')
         self.Bind(wx.EVT_BUTTON, self.__on_ok, self._buttonOk)

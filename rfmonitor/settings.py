@@ -36,6 +36,8 @@ class Settings(object):
         self._gain = 0
         self._cal = 0
         self._gps = GpsDevice()
+        self._pushEnable = True
+        self._pushUri = 'http://localhost/rfmonitor'
 
         self.__load()
 
@@ -54,6 +56,10 @@ class Settings(object):
         self._gps.stops = self._config.ReadInt('stops', self._gps.stops)
         self._gps.soft = self._config.ReadBool('soft', self._gps.soft)
 
+        self._config.SetPath('/Push')
+        self._pushEnable = self._config.ReadBool('pushEnable', self._pushEnable)
+        self._pushUri = self._config.Read('pushUri', self._pushUri)
+
     def set_freq(self, freq):
         self._freq = freq
 
@@ -62,6 +68,12 @@ class Settings(object):
 
     def set_cal(self, cal):
         self._cal = cal
+
+    def set_push_enable(self, enable):
+        self._pushEnable = enable
+
+    def set_push_uri(self, uri):
+        self._pushUri = uri
 
     def get_freq(self):
         return self._freq
@@ -74,6 +86,12 @@ class Settings(object):
 
     def get_gps(self):
         return self._gps
+
+    def get_push_enable(self):
+        return self._pushEnable
+
+    def get_push_uri(self):
+        return self._pushUri
 
     def save(self):
         self._config.SetPath('/')
@@ -89,6 +107,10 @@ class Settings(object):
         self._config.Write('parity', self._gps.parity)
         self._config.WriteInt('stops', self._gps.stops)
         self._config.WriteBool('soft', self._gps.soft)
+
+        self._config.SetPath('/Push')
+        self._config.WriteBool('pushEnable', self._pushEnable)
+        self._config.Write('pushUri', self._pushUri)
 
 
 if __name__ == '__main__':

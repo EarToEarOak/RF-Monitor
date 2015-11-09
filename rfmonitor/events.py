@@ -37,7 +37,8 @@ class Events(object):
         SERVER_ERROR, \
         GPS_ERROR, GPS_WARN, GPS_TIMEOUT, GPS_LOC, GPS_SATS, \
         CHANGED, \
-        MON_ALERT = range(10)
+        PUSH_ERROR, \
+        MON_ALERT = range(11)
 
 
 class Event(wx.PyEvent):

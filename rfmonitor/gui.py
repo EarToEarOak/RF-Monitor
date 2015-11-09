@@ -37,6 +37,7 @@ import wx
 from rfmonitor.constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME, \
     GPS_RETRY, ALERT_LENGTH
 from rfmonitor.dialog_about import DialogAbout
+from rfmonitor.dialog_push import DialogPush
 from rfmonitor.dialog_gps import DialogGps
 from rfmonitor.dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
 from rfmonitor.dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
@@ -45,6 +46,7 @@ from rfmonitor.file import save_recordings, load_recordings, format_recording
 from rfmonitor.gps import Gps
 from rfmonitor.panel_monitor import PanelMonitor
 from rfmonitor.panel_toolbar import XrcHandlerToolbar
+from rfmonitor.push import Push
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
@@ -117,6 +119,7 @@ class FrameMain(wx.Frame):
 
         self.__on_freq(self._settings.get_freq())
 
+        self._push = Push(self._frame, self._settings)
         self._server = Server(self._frame)
 
         self.__start_gps()
@@ -130,7 +133,6 @@ class FrameMain(wx.Frame):
         self._menuSave = self._menu.FindItemById(idSave)
         self._frame.Bind(wx.EVT_MENU, self.__on_save, id=idSave)
         idSaveAs = xrc.XRCID('menuSaveAs')
-        self._menuSaveAs = self._menu.FindItemById(idSaveAs)
         self._frame.Bind(wx.EVT_MENU, self.__on_save_as, id=idSaveAs)
         idClear = xrc.XRCID('menuClear')
         self._menuClear = self._menu.FindItemById(idClear)
@@ -147,6 +149,8 @@ class FrameMain(wx.Frame):
         idExit = xrc.XRCID('menuExit')
         self._menuExit = self._menu.FindItemById(idExit)
         self._frame.Bind(wx.EVT_MENU, self.__on_exit, id=idExit)
+        idPush = xrc.XRCID('menuPush')
+        self._frame.Bind(wx.EVT_MENU, self.__on_push, id=idPush)
         idAbout = xrc.XRCID('menuAbout')
         self._frame.Bind(wx.EVT_MENU, self.__on_about, id=idAbout)
 
@@ -312,6 +316,10 @@ class FrameMain(wx.Frame):
         self._menuSpectrum.Check(False)
         self._dialogSpectrum = None
 
+    def __on_push(self, _event):
+        dlg = DialogPush(self._frame, self._settings)
+        dlg.ShowModal()
+
     def __on_about(self, _event):
         dlg = DialogAbout(self._frame)
         dlg.ShowModal()
@@ -361,6 +369,11 @@ class FrameMain(wx.Frame):
             self.__set_timeline()
             self.__set_spectrum()
             self.__set_title()
+        elif event.type == Events.PUSH_ERROR:
+            if self._settings.get_push_enable():
+                self._settings.set_push_enable(False)
+                wx.MessageBox('Push disabled:\n' + event.data['msg'],
+                              'Push error', wx.OK | wx.ICON_ERROR)
 
     def __on_scan_error(self, event):
         wx.MessageBox(event['msg'],
@@ -387,9 +400,12 @@ class FrameMain(wx.Frame):
                                            self._location)
                 if signal is not None:
                     updated = True
-                    if signal.end is not None and self._server is not None:
+                    if signal.end is not None:
                         recording = format_recording(freq, signal)
-                        self._server.send(recording)
+                        self._push.send(recording)
+                        if self._server is not None:
+                            self._server.send(recording)
+
 
         if updated:
             if self._isSaved:

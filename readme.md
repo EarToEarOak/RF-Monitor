@@ -86,6 +86,12 @@ or Linux
 `python rfmonitor.py -p /dev/ttyUSB0 -b 115200 -c savedfile.rfmon`
 
 
+**Network**
+
+A TCP server is available on port 15622 which outputs JSON describing the recorded signals, for example:
+
+`{"Frequency": 89000000, "Signal": {"Start": 1447075856.359, "End": 1447075856.632, "Level": -24.174076948140357}}`
+
 ##License##
 
 This program is free software: you can redistribute it and/or modify

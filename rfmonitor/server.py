@@ -83,7 +83,7 @@ class Server(threading.Thread):
     def send(self, data):
         if self._client is not None:
             try:
-                self._client.sendall(json.dumps(data))
+                self._client.sendall(data)
                 self._client.sendall('\r\n')
             except socket.error:
                 self._client.close()

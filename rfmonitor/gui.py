@@ -51,7 +51,7 @@ from rfmonitor.settings import Settings
 from rfmonitor.ui import load_ui, load_sound, load_icon
 
 
-COLOURS = 15
+COLOURS = 16
 
 
 class RfMonitor(wx.App):
@@ -210,6 +210,7 @@ class FrameMain(wx.Frame):
         monitor = PanelMonitor(self._window, self._frame)
         monitor.set_callback(self.__on_del)
         monitor.set_freqs(self._freqs)
+        monitor.set_colours(self._colours)
         self.__add_monitor(monitor)
 
         self._toolbar.enable_freq(False)
@@ -408,10 +409,9 @@ class FrameMain(wx.Frame):
             _head, tail = os.path.split(self._filename)
             title += ' - ' + tail
             self._menuSave.Enable(not self._isSaved)
-            self._menuSaveAs.Enable(not self._isSaved)
         else:
             self._menuSave.Enable(False)
-            self._menuSaveAs.Enable(not self._isSaved)
+
         if not self._isSaved:
             title += '*'
         self._frame.SetTitle(title)
@@ -496,6 +496,7 @@ class FrameMain(wx.Frame):
             panelMonitor = PanelMonitor(self._window, self._frame)
             panelMonitor.set_callback(self.__on_del)
             panelMonitor.set_freqs(self._freqs)
+            panelMonitor.set_colour(monitor.get_colour())
             panelMonitor.set_enabled(monitor.get_enabled())
             panelMonitor.set_alert(monitor.get_alert())
             panelMonitor.set_freq(monitor.get_frequency())
@@ -509,13 +510,14 @@ class FrameMain(wx.Frame):
         self.__set_spectrum()
 
     def __add_monitor(self, monitor):
-        colours = self.__get_used_colours()
-        if len(colours):
-            colour = colours[0]
-        else:
-            index = len(self._monitors) % COLOURS
-            colour = self._colours[index]
-        monitor.set_colour(colour)
+        if monitor.get_colour() is None:
+            colours = self.__get_used_colours()
+            if len(colours):
+                colour = colours[0]
+            else:
+                index = len(self._monitors) % COLOURS
+                colour = self._colours[index]
+            monitor.set_colour(colour)
 
         self._toolbar.enable_freq(False)
 

@@ -39,13 +39,13 @@ from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 class PanelMonitor(Monitor, wx.Panel):
     def __init__(self, parent, eventHandler):
-        Monitor.__init__(self, False, False, None, None, [], [])
+        Monitor.__init__(self, None, False, False, None, None, [], [])
 
         self._eventHandler = eventHandler
         self._isRecording = False
         self._isRunning = False
         self._isLow = True
-        self._colour = None
+        self._colours = []
 
         pre = wx.PrePanel()
         self._ui = load_ui('PanelMonitor.xrc')
@@ -79,11 +79,28 @@ class PanelMonitor(Monitor, wx.Panel):
 
         self._on_del = None
 
+        self._panelColour.Bind(wx.EVT_LEFT_UP, self.__on_colour)
         self.Bind(wx.EVT_CHECKBOX, self.__on_enable, self._checkEnable)
         self.Bind(wx.EVT_CHECKBOX, self.__on_alert, self._checkAlert)
         self.Bind(wx.EVT_CHOICE, self.__on_freq, self._choiceFreq)
         self.Bind(wx.EVT_SLIDER, self.__on_threshold, self._sliderThreshold)
         self.Bind(wx.EVT_BUTTON, self.__on_del, self._buttonDel)
+
+    def __on_colour(self, _event):
+        colourData = wx.ColourData()
+        colourData.SetChooseFull(True)
+        colourData.SetColour([level * 255 for level in self._colour])
+        for i in range(len(self._colours)):
+            colour = [level * 255 for level in self._colours[i]]
+            colourData.SetCustomColour(i, colour)
+
+        dlg = wx.ColourDialog(self, colourData)
+        if dlg.ShowModal() == wx.ID_OK:
+            colour = dlg.GetColourData().GetColour()
+            colour = [level / 255. for level in colour]
+            self.set_colour(colour)
+            event = Event(Events.CHANGED)
+            post_event(self._eventHandler, event)
 
     def __on_enable(self, _event):
         enabled = self._checkEnable.IsChecked()
@@ -218,8 +235,13 @@ class PanelMonitor(Monitor, wx.Panel):
 
     def set_colour(self, colour):
         self._colour = colour
-        wxColour = [level * 255 for level in colour]
-        self._panelColour.SetBackgroundColour(wx.Colour(*wxColour))
+        if colour is not None:
+            wxColour = [level * 255 for level in colour]
+            self._panelColour.SetBackgroundColour(wxColour)
+            self._panelColour.Refresh()
+
+    def set_colours(self, colours):
+        self._colours = colours
 
     def clear(self):
         self._signals = []

@@ -39,6 +39,7 @@ def save_recordings(filename, freq, gain, cal, monitors):
     jsonMonitors = []
     for monitor in monitors:
         jsonMonitor = OrderedDict()
+        jsonMonitor['Colour'] = monitor.get_colour()
         jsonMonitor['Enabled'] = monitor.get_enabled()
         jsonMonitor['Alert'] = monitor.get_alert()
         jsonMonitor['Frequency'] = int(monitor.get_frequency() * 1e6)
@@ -80,11 +81,16 @@ def load_recordings(filename):
         alert = jsonMonitor['Alert'] if 'Alert' in jsonMonitor else False
         signals = [Signal().from_list(signal)
                    for signal in jsonMonitor['Signals']]
+        colour = None
+        if 'Colour' in jsonMonitor:
+            colour = jsonMonitor['Colour']
         periods = []
         if 'Periods' in jsonMonitor:
             periods = [Period().from_list(period)
                        for period in jsonMonitor['Periods']]
-        monitor = Monitor(jsonMonitor['Enabled'],
+
+        monitor = Monitor(colour,
+                          jsonMonitor['Enabled'],
                           alert,
                           jsonMonitor['Frequency'] / 1e6,
                           jsonMonitor['Threshold'],

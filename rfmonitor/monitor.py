@@ -34,10 +34,11 @@ LEVELS_LEN = MAX_LEVELS_TIME * SAMPLE_RATE / SAMPLES
 
 class Monitor(object):
     def __init__(self,
-                 enabled, alert,
+                 colour, enabled, alert,
                  frequency, threshold,
                  signals, periods):
 
+        self._colour = colour
         self._enabled = enabled
         self._alert = alert
         self._freq = frequency
@@ -45,6 +46,9 @@ class Monitor(object):
         self._signals = signals
         self._levels = collections.deque(maxlen=round(LEVELS_LEN))
         self._periods = periods
+
+    def get_colour(self):
+        return self._colour
 
     def get_enabled(self):
         return self._enabled
@@ -66,6 +70,9 @@ class Monitor(object):
 
     def get_levels(self):
         return self._levels
+
+    def set_colour(self, colour):
+        self._colour = colour
 
     def set_enabled(self, enabled):
         self._enabled = enabled

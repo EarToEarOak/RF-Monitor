@@ -34,7 +34,7 @@ import sys
 
 def create_version():
     repo = Repo()
-    if repo.is_dirty(untracked_files=True):
+    if repo.is_dirty():
         sys.stderr.write('Repo is dirty, exiting')
         exit(1)
 

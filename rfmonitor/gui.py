@@ -402,7 +402,8 @@ class FrameMain(wx.Frame):
                     updated = True
                     if signal.end is not None:
                         recording = format_recording(freq, signal)
-                        self._push.send(recording)
+                        if self._settings.get_push_enable():
+                            self._push.send(recording)
                         if self._server is not None:
                             self._server.send(recording)
 

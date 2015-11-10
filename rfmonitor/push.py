@@ -30,12 +30,11 @@ from rfmonitor.events import Event, Events, post_event
 
 
 class Push(object):
-    def __init__(self, handler, settings):
+    def __init__(self, handler):
         self._handler = handler
-        self._settings = settings
 
-    def __send(self, data):
-        req = urllib2.Request(self._settings.get_push_uri())
+    def __send(self, uri, data):
+        req = urllib2.Request(uri)
         req.add_header('Content-Type', 'application/json')
 
         try:
@@ -47,11 +46,10 @@ class Push(object):
             event = Event(Events.PUSH_ERROR, msg=error.reason.strerror)
             post_event(self._handler, event)
 
-    def send(self, data):
-        if self._settings.get_push_enable():
-            thread = threading.Thread(target=self.__send, args=(data,))
-            thread.daemon = True
-            thread.start()
+    def send(self, uri, data):
+        thread = threading.Thread(target=self.__send, args=(uri, data,))
+        thread.daemon = True
+        thread.start()
 
 
 if __name__ == '__main__':

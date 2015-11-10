@@ -119,7 +119,7 @@ class FrameMain(wx.Frame):
 
         self.__on_freq(self._settings.get_freq())
 
-        self._push = Push(self._frame, self._settings)
+        self._push = Push(self._frame)
         self._server = Server(self._frame)
 
         self.__start_gps()
@@ -374,7 +374,7 @@ class FrameMain(wx.Frame):
         elif event.type == Events.PUSH_ERROR:
             if self._settings.get_push_enable():
                 self._settings.set_push_enable(False)
-                wx.MessageBox('Push disabled:\n' + event.data['msg'],
+                wx.MessageBox('Push disabled:\n\t' + event.data['msg'],
                               'Push error', wx.OK | wx.ICON_ERROR)
 
     def __on_scan_error(self, event):
@@ -405,10 +405,10 @@ class FrameMain(wx.Frame):
                     if signal.end is not None:
                         recording = format_recording(freq, signal)
                         if self._settings.get_push_enable():
-                            self._push.send(recording)
+                            self._push.send(self._settings.get_push_uri(),
+                                            recording)
                         if self._server is not None:
                             self._server.send(recording)
-
 
         if updated:
             if self._isSaved:

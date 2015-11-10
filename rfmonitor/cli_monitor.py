@@ -30,12 +30,12 @@ from rfmonitor.utils import set_level
 
 class CliMonitor(Monitor):
     def __init__(self,
-                 enabled, alert,
+                 colour, enabled, alert,
                  frequency, threshold,
                  signals, periods):
 
         Monitor.__init__(self,
-                         enabled, alert,
+                         colour, enabled, alert,
                          frequency, threshold,
                          signals, periods)
 

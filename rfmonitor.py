@@ -36,14 +36,19 @@ def __arguments():
 
     parser.add_argument('-c', '--cli',
                         help='Command line mode', action='store_true')
-    parser.add_argument('-p', '--port',
-                        help='GPS serial port')
-    parser.add_argument('-b', '--baud', type=int,
-                        help='GPS serial baud rate')
-    parser.add_argument('-j', '--json', action='store_true',
-                        help='Output JSON updates (suppresses other output)')
+    groupCli = parser.add_argument_group('Command line mode')
 
-    parser.add_argument("file", nargs='?')
+    groupCli.add_argument('-p', '--port',
+                          help='GPS serial port')
+    groupCli.add_argument('-b', '--baud', type=int,
+                          help='GPS serial baud rate')
+    groupCli.add_argument('-j', '--json', action='store_true',
+                          help='Output JSON updates (suppresses other output)')
+    groupCli.add_argument('-w', '--web', type=str,
+                          help='Web server push address')
+
+    parser.add_argument('file', nargs='?',
+                        help='Load file')
 
     args = parser.parse_args()
 

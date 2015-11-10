@@ -38,6 +38,7 @@ from rfmonitor.constants import GPS_RETRY
 from rfmonitor.events import Events
 from rfmonitor.file import load_recordings, save_recordings, format_recording
 from rfmonitor.gps import GpsDevice, Gps
+from rfmonitor.push import Push
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 
@@ -55,6 +56,8 @@ class Cli(wx.EvtHandler):
         self._gpsPort = args.port
         self._gpsBaud = args.baud
         self._json = args.json
+        self._pushUri = args.web
+
         self._receive = None
         self._cancel = False
 
@@ -84,6 +87,7 @@ class Cli(wx.EvtHandler):
 
         self._signal = signal.signal(signal.SIGINT, self.__on_exit)
 
+        self._push = Push(self._queue)
         self._server = Server(self._queue)
 
         self.__start_gps()
@@ -120,7 +124,8 @@ class Cli(wx.EvtHandler):
         for monitor in monitors:
             freq = monitor.get_frequency()
             freqs.append(freq)
-            cliMonitor = CliMonitor(monitor.get_enabled(),
+            cliMonitor = CliMonitor(monitor.get_colour(),
+                                    monitor.get_enabled(),
                                     monitor.get_alert(),
                                     freq,
                                     monitor.get_threshold(),
@@ -219,6 +224,10 @@ class Cli(wx.EvtHandler):
             self.__restart_gps()
         elif event.type == Events.GPS_LOC:
             self._location = event.data['loc']
+        elif event.type == Events.PUSH_ERROR:
+            if self._pushUri is not None:
+                self._pushUri = None
+                self.__std_err('Push disabled:\n\t' + event.data['msg'])
         else:
             time.sleep(0.01)
 
@@ -244,6 +253,9 @@ class Cli(wx.EvtHandler):
                     self.__std_out(signals, False)
                     if signal.end is not None:
                         recording = format_recording(freq, signal)
+                        if self._pushUri is not None:
+                            self._push.send(self._pushUri,
+                                            recording)
                         if self._server is not None:
                             self._server.send(recording)
                         if self._json:

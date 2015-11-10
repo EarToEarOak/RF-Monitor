@@ -31,8 +31,11 @@ import wx
 
 
 def __get_ui_dir():
-    scriptDir = os.path.dirname(os.path.realpath(sys.argv[0]))
-    resDir = os.path.join(scriptDir, 'rfmonitor', 'ui')
+    if getattr(sys, 'frozen', False):
+        resDir = os.path.join(sys._MEIPASS, 'ui')
+    else:
+        scriptDir = os.path.dirname(os.path.realpath(sys.argv[0]))
+        resDir = os.path.join(scriptDir, 'rfmonitor', 'ui')
 
     return resDir
 

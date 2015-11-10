@@ -215,6 +215,8 @@ class FrameMain(wx.Frame):
         monitor.set_callback(self.__on_del)
         monitor.set_freqs(self._freqs)
         monitor.set_colours(self._colours)
+        monitor.set_recording(self._toolbar.is_recording(),
+                              time.time())
         self.__add_monitor(monitor)
 
         self._toolbar.enable_freq(False)

@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import warnings
+
 
 class Legend(object):
     def __init__(self, axes, canvas):
@@ -32,7 +34,9 @@ class Legend(object):
         self._visible = True
 
     def create(self):
-        self._legend = self._axes.legend(fontsize='small')
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self._legend = self._axes.legend(fontsize='small')
         if self._legend is not None:
             self._legend.get_frame().set_alpha(0.75)
             self._legend.set_visible(self._visible)

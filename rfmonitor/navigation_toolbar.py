@@ -52,10 +52,16 @@ class NavigationToolbar(NavigationToolbar2Wx):
         else:
             self.AddSeparator()
 
-        self._textCursor = wx.StaticText(self, label='                ')
+        self._textCursor = wx.StaticText(self, style=wx.ALL | wx.ALIGN_RIGHT)
         font = self._textCursor.GetFont()
+        font.MakeSmaller()
         font.SetFamily(wx.FONTFAMILY_TELETYPE)
         self._textCursor.SetFont(font)
+        dc = wx.ScreenDC()
+        dc.SetFont(font)
+        w, _h = dc.GetTextExtent(' ' * 18)
+        self._textCursor.SetSize((w, -1))
+
         self.AddControl(self._textCursor)
 
         self.Realize()

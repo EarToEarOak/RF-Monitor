@@ -64,13 +64,14 @@ class Cli(wx.EvtHandler):
         self._queue = Queue.Queue()
 
         try:
-            freq, gain, cal, monitors = load_recordings(self._filename)
+            freq, gain, cal, dynP, monitors = load_recordings(self._filename)
         except ValueError:
             msg = '\'' + os.path.split(self._filename)[1] + '\' is corrupt.'
             self.__std_err(msg)
             self.__stop(None, None)
             exit(1)
 
+        self._dynP = dynP
         enabled = [monitor for monitor in monitors
                    if monitor.get_enabled()]
         if not len(enabled):
@@ -103,13 +104,14 @@ class Cli(wx.EvtHandler):
                 except IOError:
                     pass
 
-        self.__stop(freq, gain, cal)
+        self.__stop(freq, gain, cal, dynP)
 
-    def __save(self, freq, gain, cal):
+    def __save(self, freq, gain, cal, dynP):
         save_recordings(self._filename,
                         freq,
                         gain,
                         cal,
+                        dynP,
                         self._monitors)
 
     def __is_saved(self):
@@ -129,6 +131,7 @@ class Cli(wx.EvtHandler):
                                     monitor.get_alert(),
                                     freq,
                                     monitor.get_threshold(),
+                                    monitor.get_dynamic(),
                                     monitor.get_signals(),
                                     monitor.get_periods())
             self._monitors.append(cliMonitor)
@@ -172,7 +175,7 @@ class Cli(wx.EvtHandler):
                                 gain,
                                 cal)
 
-    def __stop(self, freq, gain, cal):
+    def __stop(self, freq, gain, cal, dynP):
         self.__std_out('\nStopping...')
 
         if self._receive is not None:
@@ -188,7 +191,7 @@ class Cli(wx.EvtHandler):
 
         if not self.__is_saved():
             self.__std_out('Saving..')
-            self.__save(freq, gain, cal)
+            self.__save(freq, gain, cal, dynP)
 
         self.__std_out('Finished')
 
@@ -239,9 +242,13 @@ class Cli(wx.EvtHandler):
         levels = numpy.log10(event['l'])
         levels *= 10
 
+        noise = numpy.percentile(levels,
+                                 self._dynP)
+
         for monitor in self._monitors:
             freq = monitor.get_frequency()
             if monitor.get_enabled():
+                monitor.set_noise(noise)
                 index = numpy.where(freq == event['f'])[0]
                 signal = monitor.set_level(levels[index][0],
                                            event['timestamp'],

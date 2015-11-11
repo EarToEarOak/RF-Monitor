@@ -118,7 +118,7 @@ class DialogSpectrum(wx.Dialog):
             if gid is not None and gid == 'line':
                 child.remove()
 
-    def set_spectrum(self, freqs, levels, monitors):
+    def set_spectrum(self, freqs, levels, monitors, noise):
         timestamp = time.time()
         self._freqs = freqs
         if timestamp - self._timestamp > self._delayDraw:
@@ -126,6 +126,10 @@ class DialogSpectrum(wx.Dialog):
             self._timestamp = timestamp
 
             self.__clear_lines()
+            self._axes.axhline(noise,
+                               color='black',
+                               ls='--',
+                               gid='line')
             for monitor in monitors:
                 colour = monitor.get_colour()
                 self._axes.axvline(monitor.get_frequency(),
@@ -150,8 +154,7 @@ class DialogSpectrum(wx.Dialog):
                 self._delayDraw = 1. / MAX_SPECTRUM_FPS
 
     def clear_spectrum(self):
-        self._spectrum.set_data([], [])
-
+        self.__clear_lines()
         self._canvas.draw()
 
 

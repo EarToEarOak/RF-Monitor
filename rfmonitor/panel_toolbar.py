@@ -48,6 +48,7 @@ class PanelToolbar(wx.Panel):
         self._numFreq = xrc.XRCCTRL(pre, 'ctrlFreq')
         self._choiceGain = xrc.XRCCTRL(pre, 'choiceGain')
         self._numCal = xrc.XRCCTRL(pre, 'ctrlCal')
+        self._spinDyn = xrc.XRCCTRL(pre, 'spinDynamic')
         self._buttonStart = xrc.XRCCTRL(pre, 'buttonStart')
         self._buttonRec = xrc.XRCCTRL(pre, 'buttonRecord')
         self._buttonStop = xrc.XRCCTRL(pre, 'buttonStop')
@@ -70,9 +71,12 @@ class PanelToolbar(wx.Panel):
         self._on_stop = None
         self._on_add = None
 
+        self._dynPercentile = 0
+
         self.Bind(masked.EVT_NUM, self.__on_freq, self._numFreq)
         self.Bind(wx.EVT_CHOICE, self.__on_change, self._choiceGain)
         self.Bind(masked.EVT_NUM, self.__on_change, self._numCal)
+        self.Bind(wx.EVT_SPINCTRL, self.__on_dynamic, self._spinDyn)
         self.Bind(wx.EVT_BUTTON, self.__on_start, self._buttonStart)
         self.Bind(wx.EVT_TOGGLEBUTTON, self.__on_rec, self._buttonRec)
         self.Bind(wx.EVT_BUTTON, self.__on_stop, self._buttonStop)
@@ -84,6 +88,10 @@ class PanelToolbar(wx.Panel):
 
     def __on_freq(self, _event):
         self._on_freq(self._numFreq.GetValue())
+        self.__on_change()
+
+    def __on_dynamic(self, _event):
+        self._dynPercentile = self._spinDyn.GetValue()
         self.__on_change()
 
     def __on_start(self, _event):
@@ -163,6 +171,13 @@ class PanelToolbar(wx.Panel):
 
     def get_cal(self):
         return self._numCal.GetValue()
+
+    def set_dynamic_percentile(self, percentile):
+        self._dynPercentile = percentile
+        self._spinDyn.SetValue(percentile)
+
+    def get_dynamic_percentile(self):
+        return self._dynPercentile
 
 
 class XrcHandlerToolbar(xrc.XmlResourceHandler):

@@ -28,18 +28,17 @@ import time
 from wx import xrc
 import wx
 
-from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX
+from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX, LEVEL_DYN_MIN, LEVEL_DYN_MAX
 from rfmonitor.events import post_event, Event, Events
 from rfmonitor.monitor import Monitor
 from rfmonitor.ui import load_ui
-from rfmonitor.utils import set_level
 from rfmonitor.widget_meter import XrcHandlerMeter, WidgetMeter
 from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 
 class PanelMonitor(Monitor, wx.Panel):
     def __init__(self, parent, eventHandler):
-        Monitor.__init__(self, None, False, False, None, None, [], [])
+        Monitor.__init__(self, None, False, False, None, None, False, [], [])
 
         self._eventHandler = eventHandler
         self._isRecording = False
@@ -61,6 +60,7 @@ class PanelMonitor(Monitor, wx.Panel):
         self._panelColour = xrc.XRCCTRL(pre, 'panelColour')
         self._checkEnable = xrc.XRCCTRL(pre, 'checkEnable')
         self._checkAlert = xrc.XRCCTRL(pre, 'checkAlert')
+        self._checkDynamic = xrc.XRCCTRL(pre, 'checkDynamic')
         self._choiceFreq = xrc.XRCCTRL(pre, 'choiceFreq')
         self._textSignals = xrc.XRCCTRL(pre, 'textSignals')
         # TODO: hackish
@@ -70,11 +70,6 @@ class PanelMonitor(Monitor, wx.Panel):
         self._sliderThreshold = xrc.XRCCTRL(pre, 'sliderThreshold')
         self._buttonDel = xrc.XRCCTRL(pre, 'buttonDel')
 
-        self._sliderThreshold.SetMin(LEVEL_MIN)
-        self._sliderThreshold.SetMax(LEVEL_MAX)
-        self._threshold = self._sliderThreshold.GetValue()
-        self._meterLevel.set_threshold(self._threshold)
-
         self.__set_records()
 
         self._on_del = None
@@ -82,6 +77,7 @@ class PanelMonitor(Monitor, wx.Panel):
         self._panelColour.Bind(wx.EVT_LEFT_UP, self.__on_colour)
         self.Bind(wx.EVT_CHECKBOX, self.__on_enable, self._checkEnable)
         self.Bind(wx.EVT_CHECKBOX, self.__on_alert, self._checkAlert)
+        self.Bind(wx.EVT_CHECKBOX, self.__on_dynamic, self._checkDynamic)
         self.Bind(wx.EVT_CHOICE, self.__on_freq, self._choiceFreq)
         self.Bind(wx.EVT_SLIDER, self.__on_threshold, self._sliderThreshold)
         self.Bind(wx.EVT_BUTTON, self.__on_del, self._buttonDel)
@@ -120,6 +116,12 @@ class PanelMonitor(Monitor, wx.Panel):
         event = Event(Events.CHANGED)
         post_event(self._eventHandler, event)
 
+    def __on_dynamic(self, _event=None):
+        self.set_dynamic(self._checkDynamic.IsChecked())
+
+        event = Event(Events.CHANGED)
+        post_event(self._eventHandler, event)
+
     def __on_freq(self, event):
         self._freq = float(event.GetString())
 
@@ -128,7 +130,7 @@ class PanelMonitor(Monitor, wx.Panel):
 
     def __on_threshold(self, _event):
         self._threshold = self._sliderThreshold.GetValue()
-        self._meterLevel.set_threshold(self._threshold)
+        self._meterLevel.set_threshold(self.get_dynamic_threshold())
 
         event = Event(Events.CHANGED)
         post_event(self._eventHandler, event)
@@ -153,14 +155,11 @@ class PanelMonitor(Monitor, wx.Panel):
         self._textSignals.SetLabel(label)
         self.__enable_freq()
 
-    def get_colour(self):
-        return self._colour
-
     def set_callback(self, on_del):
         self._on_del = on_del
 
     def set_enabled(self, enabled):
-        self._enabled = enabled
+        Monitor.set_enabled(self, enabled)
         self._checkEnable.SetValue(enabled)
         self._buttonDel.Enable(not self._enabled)
         self.__enable_freq()
@@ -168,7 +167,7 @@ class PanelMonitor(Monitor, wx.Panel):
             self._meterLevel.set_level(LEVEL_MIN)
 
     def set_alert(self, alert):
-        self._alert = alert
+        Monitor.set_alert(self, alert)
         self._checkAlert.SetValue(alert)
 
     def set_freqs(self, freqs):
@@ -179,37 +178,51 @@ class PanelMonitor(Monitor, wx.Panel):
         self._freq = float(freqs[index])
         self._choiceFreq.SetSelection(len(freqs) / 2)
 
-    def set_freq(self, freq):
+    def set_frequency(self, freq):
         freqs = map(float, self._choiceFreq.GetItems())
         try:
             self._choiceFreq.SetSelection(freqs.index(freq))
-            self._freq = freq
         except ValueError:
             self._choiceFreq.SetSelection(len(freqs) / 2)
             index = self._choiceFreq.GetSelection()
-            self._freq = float(self._choiceFreq.GetItems()[index])
+            freq = float(self._choiceFreq.GetItems()[index])
+
+        Monitor.set_frequency(self, freq)
         self._signals = []
         self.__set_records()
 
     def set_threshold(self, threshold):
-        self._threshold = threshold
-        self._meterLevel.set_threshold(threshold)
+        Monitor.set_threshold(self, threshold)
+        self._meterLevel.set_threshold(self.get_dynamic_threshold())
         self._sliderThreshold.SetValue(threshold)
 
+    def set_dynamic(self, dynamic):
+        Monitor.set_dynamic(self, dynamic)
+        self._checkDynamic.SetValue(dynamic)
+        if self._dynamic:
+            self._sliderThreshold.SetMin(LEVEL_DYN_MIN)
+            self._sliderThreshold.SetMax(LEVEL_DYN_MAX)
+        else:
+            self._sliderThreshold.SetMin(LEVEL_MIN)
+            self._sliderThreshold.SetMax(LEVEL_MAX)
+
+        self._threshold = self._sliderThreshold.GetValue()
+        self._meterLevel.set_threshold(self.get_dynamic_threshold())
+
+    def set_noise(self, noise):
+        Monitor.set_noise(self, noise)
+
     def set_level(self, level, timestamp, location):
+        threshold = self.get_dynamic_threshold()
+        self._meterLevel.set_threshold(threshold, False)
+        self._meterLevel.set_noise(self._noise)
         self._meterLevel.set_level(level)
-        threshold = self._threshold
 
-        signal = set_level(self._signals,
-                           self._levels,
-                           location,
-                           self._isRecording,
-                           threshold,
-                           level,
-                           timestamp)
-
-        if signal is not None:
-            self.__set_records()
+        signal = None
+        if self._isRecording:
+            signal = Monitor.set_level(self, level, timestamp, location)
+            if signal is not None:
+                self.__set_records()
 
         if level >= threshold and self._isLow:
             self._isLow = False
@@ -230,7 +243,7 @@ class PanelMonitor(Monitor, wx.Panel):
             self.end_period(timestamp)
 
     def set_signals(self, signals):
-        self._signals = signals
+        Monitor.set_signals(self, signals)
         self.__set_records()
 
     def set_colour(self, colour):
@@ -244,8 +257,7 @@ class PanelMonitor(Monitor, wx.Panel):
         self._colours = colours
 
     def clear(self):
-        self._signals = []
-        self._periods = []
+        Monitor.clear(self)
         self.__set_records()
 
 

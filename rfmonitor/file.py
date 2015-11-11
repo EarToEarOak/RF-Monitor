@@ -34,13 +34,14 @@ from rfmonitor.signals import Signal
 VERSION = 1
 
 
-def save_recordings(filename, freq, gain, cal, monitors):
+def save_recordings(filename, freq, gain, cal, dynP, monitors):
 
     jsonMonitors = []
     for monitor in monitors:
         jsonMonitor = OrderedDict()
         jsonMonitor['Colour'] = monitor.get_colour()
         jsonMonitor['Enabled'] = monitor.get_enabled()
+        jsonMonitor['Dynamic'] = monitor.get_dynamic()
         jsonMonitor['Alert'] = monitor.get_alert()
         jsonMonitor['Frequency'] = int(monitor.get_frequency() * 1e6)
         jsonMonitor['Threshold'] = monitor.get_threshold()
@@ -55,6 +56,7 @@ def save_recordings(filename, freq, gain, cal, monitors):
     fileData['Frequency'] = freq * 1e6
     fileData['Gain'] = gain
     fileData['Calibration'] = cal
+    fileData['DynamicPercentile'] = dynP
     fileData['Monitors'] = jsonMonitors
 
     data = [APP_NAME, fileData]
@@ -74,6 +76,7 @@ def load_recordings(filename):
     freq = data[1]['Frequency'] / 1e6
     gain = data[1]['Gain'] if 'Gain' in data[1] else None
     cal = data[1]['Calibration'] if 'Calibration' in data[1] else 0
+    dynP = data[1]['DynamicPercentile'] if 'DynamicPercentile' in data[1] else 33
     jsonMonitors = data[1]['Monitors']
 
     monitors = []
@@ -81,6 +84,9 @@ def load_recordings(filename):
         alert = jsonMonitor['Alert'] if 'Alert' in jsonMonitor else False
         signals = [Signal().from_list(signal)
                    for signal in jsonMonitor['Signals']]
+        dynamic = False
+        if 'Dynamic' in jsonMonitor:
+            dynamic = jsonMonitor['Dynamic']
         colour = None
         if 'Colour' in jsonMonitor:
             colour = jsonMonitor['Colour']
@@ -94,11 +100,12 @@ def load_recordings(filename):
                           alert,
                           jsonMonitor['Frequency'] / 1e6,
                           jsonMonitor['Threshold'],
+                          dynamic,
                           signals,
                           periods)
         monitors.append(monitor)
 
-    return freq, gain, cal, monitors
+    return freq, gain, cal, dynP, monitors
 
 
 def format_recording(freq, recording):

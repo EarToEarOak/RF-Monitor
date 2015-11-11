@@ -25,34 +25,27 @@
 
 
 from rfmonitor.monitor import Monitor
-from rfmonitor.utils import set_level
 
 
 class CliMonitor(Monitor):
     def __init__(self,
                  colour, enabled, alert,
-                 frequency, threshold,
+                 frequency, threshold, dynamic,
                  signals, periods):
 
         Monitor.__init__(self,
                          colour, enabled, alert,
-                         frequency, threshold,
+                         frequency, threshold, dynamic,
                          signals, periods)
 
         self._isSaved = True
 
     def set_level(self, level, timestamp, location):
-        update = set_level(self._signals,
-                           self._levels,
-                           location,
-                           True,
-                           self._threshold,
-                           level,
-                           timestamp)
-        if update:
+        signal = Monitor.set_level(self, level, timestamp, location)
+        if signal is not None:
             self._isSaved = False
 
-        return update
+        return signal
 
     def get_saved(self):
         return self._isSaved

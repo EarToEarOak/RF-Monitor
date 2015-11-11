@@ -47,11 +47,20 @@
                                     </object>
                                     <object class="sizeritem">
                                         <option>0</option>
-                                        <flag>wxALL</flag>
+                                        <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
                                         <border>5</border>
                                         <object class="wxCheckBox" name="checkAlert">
                                             <tooltip>Audio alert</tooltip>
                                             <label>Alert</label>
+                                            <checked>0</checked>
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <option>0</option>
+                                        <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                                        <border>5</border>
+                                        <object class="wxCheckBox" name="checkDynamic">
+                                            <label>Dynamic</label>
                                             <checked>0</checked>
                                         </object>
                                     </object>

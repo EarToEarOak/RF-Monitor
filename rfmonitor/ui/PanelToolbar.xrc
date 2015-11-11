@@ -7,7 +7,7 @@
 			<cols>0</cols>
 			<vgap>0</vgap>
 			<hgap>0</hgap>
-			<growablecols>9</growablecols>
+			<growablecols>13</growablecols>
 			<growablerows></growablerows>
 			<object class="sizeritem">
 				<option>0</option>
@@ -72,6 +72,27 @@
 				</object>
 			</object>
 			<object class="sizeritem">
+                <option>0</option>
+                <flag>wxALL</flag>
+                <border>5</border>
+                <object class="wxSpinCtrl" name="spinDynamic">
+                    <style>wxSP_ARROW_KEYS</style>
+                    <size>50,-1</size>
+                    <tooltip>Noise percentile</tooltip>
+                    <value>33</value>
+                    <min>0</min>
+                    <max>99</max>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <option>0</option>
+                <flag>wxEXPAND | wxALL</flag>
+                <border>5</border>
+                <object class="wxStaticLine" name="line2">
+                    <style>wxLI_VERTICAL</style>
+                </object>
+            </object>
+			<object class="sizeritem">
 				<option>0</option>
 				<flag>wxALL</flag>
 				<border>5</border>
@@ -105,7 +126,7 @@
 				<option>0</option>
 				<flag>wxEXPAND | wxALL</flag>
 				<border>5</border>
-				<object class="wxStaticLine" name="line2">
+				<object class="wxStaticLine" name="line3">
 					<style>wxLI_VERTICAL</style>
 				</object>
 			</object>

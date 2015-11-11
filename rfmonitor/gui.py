@@ -116,6 +116,7 @@ class FrameMain(wx.Frame):
         self._toolbar.set_gains(gains)
         self._toolbar.set_gain(self._settings.get_gain())
         self._toolbar.set_cal(self._settings.get_cal())
+        self._toolbar.set_dynamic_percentile(self._settings.get_dynamic_percentile())
 
         self.__on_freq(self._settings.get_freq())
 
@@ -207,6 +208,7 @@ class FrameMain(wx.Frame):
             self._receive.stop()
             self._receive = None
         for monitor in self._monitors:
+            monitor.set_noise(None)
             monitor.set_level(LEVEL_MIN, 0, None)
         self.__clear_levels()
 
@@ -217,6 +219,7 @@ class FrameMain(wx.Frame):
         monitor.set_colours(self._colours)
         monitor.set_recording(self._toolbar.is_recording(),
                               time.time())
+        monitor.set_dynamic(False)
         self.__add_monitor(monitor)
 
         self._toolbar.enable_freq(False)
@@ -385,17 +388,16 @@ class FrameMain(wx.Frame):
     def __on_scan_data(self, event):
         levels = numpy.log10(event['l'])
         levels *= 10
+        self._levels = levels
 
-        if numpy.isnan(self._levels[0]):
-            self._levels = levels
-        else:
-            self._levels += levels
-            self._levels /= 2.
+        noise = numpy.percentile(levels,
+                                 self._toolbar.get_dynamic_percentile())
 
         updated = False
         for monitor in self._monitors:
             freq = monitor.get_frequency()
             if monitor.get_enabled():
+                monitor.set_noise(noise)
                 index = numpy.where(freq == event['f'])[0]
                 signal = monitor.set_level(levels[index][0],
                                            event['timestamp'],
@@ -416,7 +418,7 @@ class FrameMain(wx.Frame):
                 self.__set_title()
                 self.__set_timeline()
 
-        self.__set_spectrum()
+        self.__set_spectrum(noise)
 
     def __on_server_error(self, event):
         sys.stderr.write(event['msg'])
@@ -448,6 +450,7 @@ class FrameMain(wx.Frame):
         self._settings.set_freq(self._toolbar.get_freq())
         self._settings.set_gain(self._toolbar.get_gain())
         self._settings.set_cal(self._toolbar.get_cal())
+        self._settings.set_dynamic_percentile(self._toolbar.get_dynamic_percentile())
 
     def __save(self, prompt):
         if prompt or self._filename is None:
@@ -468,6 +471,7 @@ class FrameMain(wx.Frame):
                         self._settings.get_freq(),
                         self._settings.get_gain(),
                         self._settings.get_cal(),
+                        self._settings.get_dynamic_percentile(),
                         self._monitors)
         self.__set_title()
 
@@ -485,7 +489,7 @@ class FrameMain(wx.Frame):
 
     def open(self, filename):
         try:
-            freq, gain, cal, monitors = load_recordings(filename)
+            freq, gain, cal, dynP, monitors = load_recordings(filename)
         except ValueError:
             msg = '\'' + os.path.split(filename)[1] + '\' is corrupt.'
             wx.MessageBox(msg, 'Error',
@@ -497,6 +501,7 @@ class FrameMain(wx.Frame):
         self._toolbar.set_freq(freq)
         self._toolbar.set_gain(gain)
         self._toolbar.set_cal(cal)
+        self._toolbar.set_dynamic_percentile(dynP)
         self.__clear_monitors()
         self.__add_monitors(monitors)
         self.__enable_controls(True)
@@ -518,7 +523,8 @@ class FrameMain(wx.Frame):
             panelMonitor.set_colour(monitor.get_colour())
             panelMonitor.set_enabled(monitor.get_enabled())
             panelMonitor.set_alert(monitor.get_alert())
-            panelMonitor.set_freq(monitor.get_frequency())
+            panelMonitor.set_frequency(monitor.get_frequency())
+            panelMonitor.set_dynamic(monitor.get_dynamic())
             panelMonitor.set_threshold(monitor.get_threshold())
             panelMonitor.set_signals(monitor.get_signals())
             panelMonitor.set_periods(monitor.get_periods())
@@ -574,13 +580,14 @@ class FrameMain(wx.Frame):
             self._dialogTimeline.set_monitors(monitors,
                                               self._toolbar.is_recording())
 
-    def __set_spectrum(self):
+    def __set_spectrum(self, noise=None):
         if self._dialogSpectrum is not None:
             monitors = [monitor for monitor in self._monitors
                         if monitor.get_enabled()]
             self._dialogSpectrum.set_spectrum(self._freqs,
                                               self._levels,
-                                              monitors)
+                                              monitors,
+                                              noise)
 
     def __clear_levels(self):
         self._levels.fill(numpy.NaN)

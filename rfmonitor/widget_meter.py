@@ -39,10 +39,11 @@ class WidgetMeter(wx.Panel):
 
         self._value = LEVEL_MIN
         self._threshold = LEVEL_MIN
+        self._noise = None
 
         font = self.GetFont()
-        font.SetFamily(wx.FONTFAMILY_SWISS)
-        font.SetPixelSize((0, 8))
+        font.SetFamily(wx.FONTFAMILY_MODERN)
+        font.SetPixelSize((6, 6))
         self.SetFont(font)
 
         self.Bind(wx.EVT_PAINT, self.__on_paint)
@@ -54,7 +55,12 @@ class WidgetMeter(wx.Panel):
             pass
 
     def __on_paint(self, _event):
-        dc = wx.BufferedPaintDC(self)
+        pdc = wx.BufferedPaintDC(self)
+        try:
+            dc = wx.GCDC(pdc)
+        except:
+            dc = pdc
+
         w, h = self.GetClientSize()
 
         dc.SetPen(wx.Pen(wx.WHITE))
@@ -77,6 +83,12 @@ class WidgetMeter(wx.Panel):
                         (x + THRES_SIZE, h),
                         (x, h - THRES_SIZE)])
         dc.DrawLine(x, THRES_SIZE, x, h - THRES_SIZE)
+
+        if self._noise is not None:
+            dc.SetPen(wx.Pen('#8080FF', 1))
+            x = self.__scale_x(self._noise, w)
+            dc.DrawRectangle(0, TICK_SIZE_MAJ * 3 / 2.,
+                             x, h - (TICK_SIZE_MAJ * 3))
 
         dc.SetPen(wx.GREY_PEN)
         ticks = range(LEVEL_MIN, LEVEL_MAX, 10)
@@ -109,9 +121,13 @@ class WidgetMeter(wx.Panel):
             self._value = level
             self.Refresh()
 
-    def set_threshold(self, threshold):
+    def set_threshold(self, threshold, refresh=True):
         self._threshold = threshold
-        self.Refresh()
+        if refresh:
+            self.Refresh()
+
+    def set_noise(self, noise):
+        self._noise = noise
 
 
 class XrcHandlerMeter(xrc.XmlResourceHandler):

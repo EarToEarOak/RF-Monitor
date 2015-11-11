@@ -67,22 +67,31 @@
                                 </object>
                             </object>
                             <object class="sizeritem">
-                                <option>0</option>
-                                <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                                <option>1</option>
+                                <flag>wxEXPAND</flag>
                                 <border>5</border>
-                                <object class="wxChoice" name="choiceFreq">
-                                    <tooltip>Frequency (MHz)</tooltip>
-                                    <selection>0</selection>
-                                    <content />
-                                </object>
-                            </object>
-                            <object class="sizeritem">
-                                <option>0</option>
-                                <flag>wxALL</flag>
-                                <border>5</border>
-                                <object class="wxStaticText" name="textSignals">
-                                    <label>Recorded:</label>
-                                    <wrap>-1</wrap>
+                                <object class="wxBoxSizer">
+                                    <orient>wxHORIZONTAL</orient>
+                                    <object class="sizeritem">
+                                        <option>0</option>
+                                        <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+                                        <border>5</border>
+                                        <object class="wxChoice" name="choiceFreq">
+                                            <tooltip>Frequency (MHz)</tooltip>
+                                            <selection>0</selection>
+                                            <content />
+                                        </object>
+                                    </object>
+                                    <object class="sizeritem">
+                                        <option>0</option>
+                                        <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
+                                        <border>5</border>
+                                        <object class="wxStaticText" name="textSignals">
+                                            <tooltip>Recorded signals</tooltip>
+                                            <label>Recorded: 0</label>
+                                            <wrap>-1</wrap>
+                                        </object>
+                                    </object>
                                 </object>
                             </object>
                         </object>

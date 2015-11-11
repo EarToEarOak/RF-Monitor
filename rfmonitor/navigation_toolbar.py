@@ -25,12 +25,14 @@
 
 import matplotlib
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+import wx
 
 
 class NavigationToolbar(NavigationToolbar2Wx):
-    def __init__(self, canvas):
+    def __init__(self, canvas, legend):
         NavigationToolbar2Wx.__init__(self, canvas)
         self._canvas = canvas
+        self._legend = legend
         self._autoScale = True
 
         if matplotlib.__version__ >= '1.2':
@@ -39,6 +41,27 @@ class NavigationToolbar(NavigationToolbar2Wx):
             panId = self.FindById(self._NTB2_PAN).GetId()
         self.ToggleTool(panId, True)
         self.pan()
+
+        checkLegend = wx.CheckBox(self, label='Legend')
+        checkLegend.SetValue(legend.get_visible())
+        self.AddControl(checkLegend)
+        self.Bind(wx.EVT_CHECKBOX, self.__on_legend, checkLegend, id)
+
+        if wx.__version__ >= '2.9.1':
+            self.AddStretchableSpace()
+        else:
+            self.AddSeparator()
+
+        self._textCursor = wx.StaticText(self, label='                ')
+        font = self._textCursor.GetFont()
+        font.SetFamily(wx.FONTFAMILY_TELETYPE)
+        self._textCursor.SetFont(font)
+        self.AddControl(self._textCursor)
+
+        self.Realize()
+
+    def __on_legend(self, event):
+        self._legend.set_visibile(event.IsChecked())
 
     def back(self, *args):
         NavigationToolbar2Wx.back(self, *args)
@@ -62,6 +85,9 @@ class NavigationToolbar(NavigationToolbar2Wx):
 
     def get_autoscale(self):
         return self._autoScale
+
+    def set_cursor_text(self, text):
+        self._textCursor.SetLabel(text)
 
 
 if __name__ == '__main__':

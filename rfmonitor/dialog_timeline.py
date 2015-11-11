@@ -38,6 +38,7 @@ from wx import xrc
 import wx.lib.newevent
 
 from rfmonitor.constants import BINS, SAMPLE_RATE, MAX_TIMELINE_FPS, TIMELINE_FPS
+from rfmonitor.legend import Legend
 from rfmonitor.navigation_toolbar import NavigationToolbar
 from rfmonitor.ui import load_ui
 
@@ -45,11 +46,10 @@ from rfmonitor.ui import load_ui
 EventTimelineClose, EVT_TIMELINE_CLOSE = wx.lib.newevent.NewEvent()
 
 
-class DialogTimeline(wx.Dialog):
+class DialogTimeline(wx.Dialog, Legend):
     def __init__(self, parent):
         self._parent = parent
         self._toolbar = None
-        self._textFreq = None
         self._timestamp = 0
         self._delayDraw = 1. / MAX_TIMELINE_FPS
         self._axes = None
@@ -68,7 +68,7 @@ class DialogTimeline(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.__on_close)
 
         self.__setup_plot()
-        self.__setup_toolbar()
+        self._toolbar = NavigationToolbar(self._canvas, self)
 
         sizer = self._panelPlot.GetSizer()
         sizer.Add(self._canvas, 1, wx.ALL | wx.GROW)
@@ -86,6 +86,7 @@ class DialogTimeline(wx.Dialog):
         self._axes.set_xlabel('Time')
         self._axes.set_ylabel('Frequency (MHz)')
         self._axes.grid(True)
+
         locator = AutoDateLocator()
         formatter = AutoDateFormatter(locator)
         self._axes.xaxis.set_major_formatter(formatter)
@@ -97,19 +98,7 @@ class DialogTimeline(wx.Dialog):
         self._canvas = FigureCanvas(self._panelPlot, -1, figure)
         self._canvas.mpl_connect('motion_notify_event', self.__on_motion)
 
-    def __setup_toolbar(self):
-        self._toolbar = NavigationToolbar(self._canvas)
-
-        if wx.__version__ >= '2.9.1':
-            self._toolbar.AddStretchableSpace()
-        else:
-            self._toolbar.AddSeparator()
-        self._textFreq = wx.StaticText(self._toolbar, label='                ')
-        font = self._textFreq.GetFont()
-        font.SetFamily(wx.FONTFAMILY_TELETYPE)
-        self._textFreq.SetFont(font)
-        self._toolbar.AddControl(self._textFreq)
-        self._toolbar.Realize()
+        Legend.__init__(self, self._axes, self._canvas)
 
     def __on_timer(self, _event):
         self.set_monitors(self._monitors, True)
@@ -119,7 +108,7 @@ class DialogTimeline(wx.Dialog):
         if event.xdata is not None and event.xdata >= 1:
             timestamp = num2epoch(event.xdata)
             label = datetime.datetime.fromtimestamp(timestamp).strftime('%c')
-        self._textFreq.SetLabel(label)
+        self._toolbar.set_cursor_text(label)
 
     def __on_close(self, _event):
         evt = EventTimelineClose()
@@ -127,6 +116,7 @@ class DialogTimeline(wx.Dialog):
         self.Destroy()
 
     def __clear_plots(self):
+        Legend.clear(self)
         for child in self._axes.get_children():
             gid = child.get_gid()
             if gid is not None and gid == 'plot':
@@ -183,14 +173,18 @@ class DialogTimeline(wx.Dialog):
                                        gid='plot')
                 self._axes.axhline(freq,
                                    color=colour,
-                                   gid='plot',)
+                                   label='{:.6f}MHz'.format(freq),
+                                   gid='plot')
 
             if isLive:
                 tMax = timeNow
                 self._axes.axvline(timeNow,
                                    color='black',
                                    linestyle='--',
+                                   label='Latest',
                                    gid='plot')
+
+            Legend.create(self)
 
             if tMax is None:
                 self._axes.set_xlim(timeNow - 1. / 288, timeNow)

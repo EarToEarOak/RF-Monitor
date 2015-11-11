@@ -34,18 +34,17 @@ from wx import xrc
 import wx.lib.newevent
 
 from rfmonitor.constants import MAX_SPECTRUM_FPS
+from rfmonitor.legend import Legend
 from rfmonitor.navigation_toolbar import NavigationToolbar
 from rfmonitor.ui import load_ui
 
 EventSpectrumClose, EVT_SPECTRUM_CLOSE = wx.lib.newevent.NewEvent()
 
 
-class DialogSpectrum(wx.Dialog):
+class DialogSpectrum(wx.Dialog, Legend):
     def __init__(self, parent, freqs):
         self._parent = parent
         self._spectrum = None
-        self._toolbar = None
-        self._textFreq = None
         self._timestamp = 0
         self._delayDraw = 1. / MAX_SPECTRUM_FPS
         self._axes = None
@@ -64,7 +63,7 @@ class DialogSpectrum(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.__on_close)
 
         self.__setup_plot()
-        self.__setup_toolbar()
+        self._toolbar = NavigationToolbar(self._canvas, self)
 
         sizer = self._panelPlot.GetSizer()
         sizer.Add(self._canvas, 1, wx.ALL | wx.GROW)
@@ -81,38 +80,27 @@ class DialogSpectrum(wx.Dialog):
         self._axes.autoscale_view(True, True, True)
         self._axes.grid(True)
 
-        self._spectrum, = self._axes.plot([], [], 'b-')
+        self._spectrum, = self._axes.plot([], [], 'b-', label='Spectrum')
 
         self._canvas = FigureCanvas(self._panelPlot, -1, figure)
         self._canvas.mpl_connect('motion_notify_event', self.__on_motion)
 
-    def __setup_toolbar(self):
-        self._toolbar = NavigationToolbar(self._canvas)
-
-        if wx.__version__ >= '2.9.1':
-            self._toolbar.AddStretchableSpace()
-        else:
-            self._toolbar.AddSeparator()
-        self._textFreq = wx.StaticText(self._toolbar, label='          ')
-        font = self._textFreq.GetFont()
-        font.SetFamily(wx.FONTFAMILY_TELETYPE)
-        self._textFreq.SetFont(font)
-        self._toolbar.AddControl(self._textFreq)
-        self._toolbar.Realize()
+        Legend.__init__(self, self._axes, self._canvas)
 
     def __on_motion(self, event):
         label = ''
         if event.xdata is not None:
             freq = min(self._freqs, key=lambda x: abs(x - event.xdata))
             label = '{: 8.4f}MHz'.format(freq)
-        self._textFreq.SetLabel(label)
+        self._toolbar.set_cursor_text(label)
 
     def __on_close(self, _event):
         evt = EventSpectrumClose()
         wx.PostEvent(self._parent, evt)
         self.Destroy()
 
-    def __clear_lines(self):
+    def __clear_plots(self):
+        Legend.clear(self)
         for child in self._axes.get_children():
             gid = child.get_gid()
             if gid is not None and gid == 'line':
@@ -125,21 +113,26 @@ class DialogSpectrum(wx.Dialog):
             t1 = time.time()
             self._timestamp = timestamp
 
-            self.__clear_lines()
+            self.__clear_plots()
             self._axes.axhline(noise,
                                color='black',
                                ls='--',
+                               label='Noise level',
                                gid='line')
             for monitor in monitors:
                 colour = monitor.get_colour()
-                self._axes.axvline(monitor.get_frequency(),
+                freq = monitor.get_frequency()
+                self._axes.axvline(freq,
                                    color=colour,
                                    dashes=[2, 1],
+                                   label='{:.6f}MHz'.format(freq),
                                    gid='line')
                 self._axes.axhline(monitor.get_threshold(),
                                    color=colour,
                                    dashes=[2, 1],
                                    gid='line')
+
+            Legend.create(self)
 
             self._spectrum.set_data(freqs, levels)
             self._axes.relim()
@@ -154,7 +147,7 @@ class DialogSpectrum(wx.Dialog):
                 self._delayDraw = 1. / MAX_SPECTRUM_FPS
 
     def clear_spectrum(self):
-        self.__clear_lines()
+        self.__clear_plots()
         self._canvas.draw()
 
 

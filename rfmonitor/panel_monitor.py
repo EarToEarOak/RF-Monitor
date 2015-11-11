@@ -210,6 +210,8 @@ class PanelMonitor(Monitor, wx.Panel):
         self._meterLevel.set_threshold(self.get_dynamic_threshold())
 
     def set_noise(self, noise):
+        if not self._dynamic:
+            noise = None
         Monitor.set_noise(self, noise)
 
     def set_level(self, level, timestamp, location):

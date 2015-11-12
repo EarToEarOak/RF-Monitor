@@ -24,7 +24,6 @@
 #
 
 
-import json
 import select
 import socket
 import threading
@@ -39,6 +38,7 @@ class Server(threading.Thread):
     def __init__(self, eventHandler):
         threading.Thread.__init__(self)
         self.name = 'Server'
+        self.daemon = True
         self._eventHandler = eventHandler
 
         self._client = None

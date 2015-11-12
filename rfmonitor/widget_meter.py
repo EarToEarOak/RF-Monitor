@@ -28,7 +28,7 @@ import wx
 
 from rfmonitor.constants import LEVEL_MAX, LEVEL_MIN
 
-TICK_SIZE_MAJ = 6
+TICK_SIZE_MAJ = 4
 TICK_SIZE_MIN = 2
 THRES_SIZE = 4
 
@@ -45,6 +45,8 @@ class WidgetMeter(wx.Panel):
         font.SetFamily(wx.FONTFAMILY_MODERN)
         font.SetPixelSize((6, 6))
         self.SetFont(font)
+
+        self.SetMinSize((250, 25))
 
         self.Bind(wx.EVT_PAINT, self.__on_paint)
         self.Bind(wx.EVT_SIZE, self.__on_size)

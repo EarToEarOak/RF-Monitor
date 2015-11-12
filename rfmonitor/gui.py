@@ -33,23 +33,24 @@ import numpy
 from rtlsdr.rtlsdr import RtlSdr
 from wx import xrc
 import wx
+from wx.lib.agw import aui
 
 from rfmonitor.constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME, \
     GPS_RETRY, ALERT_LENGTH
 from rfmonitor.dialog_about import DialogAbout
-from rfmonitor.dialog_push import DialogPush
 from rfmonitor.dialog_gps import DialogGps
+from rfmonitor.dialog_push import DialogPush
 from rfmonitor.dialog_spectrum import DialogSpectrum, EVT_SPECTRUM_CLOSE
 from rfmonitor.dialog_timeline import DialogTimeline, EVT_TIMELINE_CLOSE
 from rfmonitor.events import EVENT_THREAD, Events
 from rfmonitor.file import save_recordings, load_recordings, format_recording
 from rfmonitor.gps import Gps
 from rfmonitor.panel_monitor import PanelMonitor
-from rfmonitor.panel_toolbar import XrcHandlerToolbar
 from rfmonitor.push import Push
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
+from rfmonitor.toolbar import PanelToolbar
 from rfmonitor.ui import load_ui, load_sound, load_icon
 
 
@@ -67,6 +68,7 @@ class RfMonitor(wx.App):
 
 class FrameMain(wx.Frame):
     def __init__(self):
+        wx.Frame.__init__(self, None)
         self._monitors = []
         self._freqs = []
         self._levels = numpy.zeros(BINS, dtype=numpy.float32)
@@ -84,16 +86,35 @@ class FrameMain(wx.Frame):
 
         self._ui = load_ui('FrameMain.xrc')
 
-        handlerToolbar = XrcHandlerToolbar()
-        self._ui.AddHandler(handlerToolbar)
+        self._menu = self._ui.LoadMenuBar('menuBar')
+        self._panelMonitors = self._ui.LoadObject(self, 'scrolled', 'wxScrolledWindow')
+        self._status = self._ui.LoadObject(self, 'statusBar', 'wxStatusBar')
+        self._sizerMonitors = self._panelMonitors.GetSizer()
+        self._toolbar = PanelToolbar(self)
 
-        self._frame = self._ui.LoadFrame(None, 'FrameMain')
+        self.SetMenuBar(self._menu)
+        self.SetStatusBar(self._status)
 
-        self._window = xrc.XRCCTRL(self._frame, 'window')
-        self._status = xrc.XRCCTRL(self._frame, 'statusBar')
-        self._toolbar = xrc.XRCCTRL(self._frame, 'PanelToolbar')
+        self._mgr = aui.AuiManager(self)
+        self._mgr.AddPane(self._panelMonitors, aui.AuiPaneInfo().
+                          Centre().
+                          Caption('Monitors').
+                          CloseButton(False))
+        self._mgr.AddPane(self._toolbar, aui.AuiPaneInfo().
+                          Bottom().
+                          CaptionVisible(False).
+                          CloseButton(False).
+                          Gripper().
+                          Dock().
+                          TopDockable().
+                          BottomDockable().
+                          Floatable(False).
+                          DockFixed())
+        self._mgr.Update()
 
-        self._sizerWindow = self._window.GetSizer()
+        width = self._toolbar.GetBestSize().GetWidth()
+        self.SetSize((width, -1))
+        self.SetMinSize((width, 200))
 
         self.__set_icon()
 
@@ -120,40 +141,38 @@ class FrameMain(wx.Frame):
 
         self.__on_freq(self._settings.get_freq())
 
-        self._push = Push(self._frame)
-        self._server = Server(self._frame)
+        self._push = Push(self)
+        self._server = Server(self)
 
         self.__start_gps()
 
-        self._menu = self._frame.GetMenuBar()
-
         idOpen = xrc.XRCID('menuOpen')
         self._menuOpen = self._menu.FindItemById(idOpen)
-        self._frame.Bind(wx.EVT_MENU, self.__on_open, id=idOpen)
+        self.Bind(wx.EVT_MENU, self.__on_open, id=idOpen)
         idSave = xrc.XRCID('menuSave')
         self._menuSave = self._menu.FindItemById(idSave)
-        self._frame.Bind(wx.EVT_MENU, self.__on_save, id=idSave)
+        self.Bind(wx.EVT_MENU, self.__on_save, id=idSave)
         idSaveAs = xrc.XRCID('menuSaveAs')
-        self._frame.Bind(wx.EVT_MENU, self.__on_save_as, id=idSaveAs)
+        self.Bind(wx.EVT_MENU, self.__on_save_as, id=idSaveAs)
         idClear = xrc.XRCID('menuClear')
         self._menuClear = self._menu.FindItemById(idClear)
-        self._frame.Bind(wx.EVT_MENU, self.__on_clear, id=idClear)
+        self.Bind(wx.EVT_MENU, self.__on_clear, id=idClear)
         idGps = xrc.XRCID('menuGps')
         self._menuGps = self._menu.FindItemById(idGps)
-        self._frame.Bind(wx.EVT_MENU, self.__on_gps, id=idGps)
+        self.Bind(wx.EVT_MENU, self.__on_gps, id=idGps)
         idTimeline = xrc.XRCID('menuTimeline')
-        self._frame.Bind(wx.EVT_MENU, self.__on_timeline, id=idTimeline)
+        self.Bind(wx.EVT_MENU, self.__on_timeline, id=idTimeline)
         self._menuTimeline = self._menu.FindItemById(idTimeline)
         idSpectrum = xrc.XRCID('menuSpectrum')
-        self._frame.Bind(wx.EVT_MENU, self.__on_spectrum, id=idSpectrum)
+        self.Bind(wx.EVT_MENU, self.__on_spectrum, id=idSpectrum)
         self._menuSpectrum = self._menu.FindItemById(idSpectrum)
         idExit = xrc.XRCID('menuExit')
         self._menuExit = self._menu.FindItemById(idExit)
-        self._frame.Bind(wx.EVT_MENU, self.__on_exit, id=idExit)
+        self.Bind(wx.EVT_MENU, self.__on_exit, id=idExit)
         idPush = xrc.XRCID('menuPush')
-        self._frame.Bind(wx.EVT_MENU, self.__on_push, id=idPush)
+        self.Bind(wx.EVT_MENU, self.__on_push, id=idPush)
         idAbout = xrc.XRCID('menuAbout')
-        self._frame.Bind(wx.EVT_MENU, self.__on_about, id=idAbout)
+        self.Bind(wx.EVT_MENU, self.__on_about, id=idAbout)
 
         self._alert = load_sound('alert.wav')
         self._alertLast = 0
@@ -161,14 +180,14 @@ class FrameMain(wx.Frame):
         self.__set_title()
         self.__enable_controls(True)
 
-        self._frame.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
-        self._frame.Bind(EVT_SPECTRUM_CLOSE, self.__on_spectrum_close)
+        self.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
+        self.Bind(EVT_SPECTRUM_CLOSE, self.__on_spectrum_close)
 
-        self._frame.Bind(wx.EVT_CLOSE, self.__on_exit)
+        self.Bind(wx.EVT_CLOSE, self.__on_exit)
 
-        self._frame.Connect(-1, -1, EVENT_THREAD, self.__on_event)
+        self.Connect(-1, -1, EVENT_THREAD, self.__on_event)
 
-        self._frame.Show()
+        self.Show()
 
         self.__clear_levels()
 
@@ -185,7 +204,7 @@ class FrameMain(wx.Frame):
     def __on_start(self):
         self.__enable_controls(False)
         if self._receive is None:
-            self._receive = Receive(self._frame,
+            self._receive = Receive(self,
                                     self._toolbar.get_freq(),
                                     self._toolbar.get_gain(),
                                     self._toolbar.get_cal())
@@ -213,7 +232,7 @@ class FrameMain(wx.Frame):
         self.__clear_levels()
 
     def __on_add(self):
-        monitor = PanelMonitor(self._window, self._frame)
+        monitor = PanelMonitor(self._panelMonitors, self)
         monitor.set_callback(self.__on_del)
         monitor.set_freqs(self._freqs)
         monitor.set_colours(self._colours)
@@ -224,21 +243,21 @@ class FrameMain(wx.Frame):
 
         self._toolbar.enable_freq(False)
 
-        self._frame.Layout()
+        self.Layout()
 
         self.__set_timeline()
         self.__set_spectrum()
         self._isSaved = False
         self.__set_title()
 
-        scroll = self._window.GetScrollRange(wx.VERTICAL)
-        self._window.Scroll(0, scroll)
+#         scroll = self._panelMonitors.GetScrollRange(wx.VERTICAL)
+#         self._panelMonitors.Scroll(0, scroll)
 
     def __on_del(self, monitor):
         index = self._monitors.index(monitor)
-        self._sizerWindow.Hide(index)
-        self._sizerWindow.Remove(index)
-        self._frame.Layout()
+        self._sizerMonitors.Hide(index)
+        self._sizerMonitors.Remove(index)
+        self.Layout()
 
         self._monitors.remove(monitor)
 
@@ -256,7 +275,7 @@ class FrameMain(wx.Frame):
         defDir, defFile = '', ''
         if self._filename is not None:
             defDir, defFile = os.path.split(self._filename)
-        dlg = wx.FileDialog(self._frame,
+        dlg = wx.FileDialog(self,
                             'Open File',
                             defDir, defFile,
                             'rfmon files (*.rfmon)|*.rfmon',
@@ -289,14 +308,14 @@ class FrameMain(wx.Frame):
         self.__set_title()
 
     def __on_gps(self, _event):
-        dlg = DialogGps(self._frame, self._settings.get_gps())
+        dlg = DialogGps(self, self._settings.get_gps())
         if dlg.ShowModal() == wx.ID_OK:
             self.__stop_gps()
             self.__start_gps()
 
     def __on_timeline(self, event):
         if event.IsChecked() and self._dialogTimeline is None:
-            self._dialogTimeline = DialogTimeline(self._frame)
+            self._dialogTimeline = DialogTimeline(self)
             self.__set_timeline()
             self._dialogTimeline.Show()
         elif self._dialogTimeline is not None:
@@ -309,7 +328,7 @@ class FrameMain(wx.Frame):
 
     def __on_spectrum(self, event):
         if event.IsChecked() and self._dialogSpectrum is None:
-            self._dialogSpectrum = DialogSpectrum(self._frame,
+            self._dialogSpectrum = DialogSpectrum(self,
                                                   self._freqs)
             self.__set_spectrum()
             self._dialogSpectrum.Show()
@@ -322,11 +341,11 @@ class FrameMain(wx.Frame):
         self._dialogSpectrum = None
 
     def __on_push(self, _event):
-        dlg = DialogPush(self._frame, self._settings)
+        dlg = DialogPush(self, self._settings)
         dlg.ShowModal()
 
     def __on_about(self, _event):
-        dlg = DialogAbout(self._frame)
+        dlg = DialogAbout(self)
         dlg.ShowModal()
 
     def __on_exit(self, _event):
@@ -343,7 +362,8 @@ class FrameMain(wx.Frame):
         self.__update_settings()
         self._settings.save()
 
-        self._frame.Destroy()
+        self._mgr.UnInit()
+        self.Destroy()
 
     def __on_event(self, event):
         if event.type == Events.SCAN_ERROR:
@@ -435,11 +455,11 @@ class FrameMain(wx.Frame):
 
         if not self._isSaved:
             title += '*'
-        self._frame.SetTitle(title)
+        self.SetTitle(title)
 
     def __set_icon(self):
         icon = load_icon('logo.png')
-        self._frame.SetIcon(icon)
+        self.SetIcon(icon)
 
         if os.name == 'nt':
             import ctypes
@@ -457,7 +477,7 @@ class FrameMain(wx.Frame):
             defDir, defFile = '', ''
             if self._filename is not None:
                 defDir, defFile = os.path.split(self._filename)
-            dlg = wx.FileDialog(self._frame,
+            dlg = wx.FileDialog(self,
                                 'Save File',
                                 defDir, defFile,
                                 'rfmon files (*.rfmon)|*.rfmon',
@@ -517,7 +537,7 @@ class FrameMain(wx.Frame):
 
     def __add_monitors(self, monitors):
         for monitor in monitors:
-            panelMonitor = PanelMonitor(self._window, self._frame)
+            panelMonitor = PanelMonitor(self._panelMonitors, self)
             panelMonitor.set_callback(self.__on_del)
             panelMonitor.set_freqs(self._freqs)
             panelMonitor.set_colour(monitor.get_colour())
@@ -530,7 +550,7 @@ class FrameMain(wx.Frame):
             panelMonitor.set_periods(monitor.get_periods())
             self.__add_monitor(panelMonitor)
 
-        self._frame.Layout()
+        self.Layout()
 
         self.__set_spectrum()
 
@@ -547,7 +567,7 @@ class FrameMain(wx.Frame):
         self._toolbar.enable_freq(False)
 
         self._monitors.append(monitor)
-        self._sizerWindow.Add(monitor, 0, wx.ALL | wx.EXPAND, 5)
+        self._sizerMonitors.Add(monitor, 0, wx.ALL | wx.EXPAND, 5)
 
     def __get_used_colours(self):
         colours = []
@@ -557,10 +577,10 @@ class FrameMain(wx.Frame):
 
     def __clear_monitors(self):
         for _i in range(len(self._monitors)):
-            self._sizerWindow.Hide(0)
-            self._sizerWindow.Remove(0)
+            self._sizerMonitors.Hide(0)
+            self._sizerMonitors.Remove(0)
 
-        self._frame.Layout()
+        self.Layout()
 
         self._monitors = []
         self._toolbar.enable_freq(True)
@@ -596,7 +616,7 @@ class FrameMain(wx.Frame):
     def __start_gps(self):
         if self._gps is None and self._settings.get_gps().enabled:
             self._status.SetStatusText('Staring GPS...', 1)
-            self._gps = Gps(self._frame, self._settings.get_gps())
+            self._gps = Gps(self, self._settings.get_gps())
 
     def __stop_gps(self):
         if self._gps is not None:

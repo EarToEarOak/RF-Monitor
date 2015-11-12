@@ -27,6 +27,8 @@ import matplotlib
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 import wx
 
+from rfmonitor.utils_wx import get_text_size
+
 
 class NavigationToolbar(NavigationToolbar2Wx):
     def __init__(self, canvas, legend):
@@ -58,9 +60,7 @@ class NavigationToolbar(NavigationToolbar2Wx):
             font.MakeSmaller()
         font.SetFamily(wx.FONTFAMILY_TELETYPE)
         self._textCursor.SetFont(font)
-        dc = wx.ScreenDC()
-        dc.SetFont(font)
-        w, _h = dc.GetTextExtent(' ' * 18)
+        w, _h = get_text_size(' ' * 18, font)
         self._textCursor.SetSize((w, -1))
 
         self.AddControl(self._textCursor)

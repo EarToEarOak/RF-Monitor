@@ -38,6 +38,7 @@ from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 
 class PanelMonitor(Monitor, wx.Panel):
     def __init__(self, parent, eventHandler):
+        wx.Panel.__init__(self, parent)
         Monitor.__init__(self, None, False, False, None, None, False, [], [])
 
         self._eventHandler = eventHandler

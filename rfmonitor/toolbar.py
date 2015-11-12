@@ -23,47 +23,84 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from wx import xrc
 import wx
 from wx.lib import masked
+from wx.lib.agw import aui
 
 from rfmonitor.events import Event, Events, post_event
-from rfmonitor.ui import load_ui
-from rfmonitor.xrchandlers import XrcHandlerNumCtrl
+from rfmonitor.utils_wx import get_text_size
 
 
-class PanelToolbar(wx.Panel):
+class PanelToolbar(aui.AuiToolBar):
     def __init__(self, parent):
+        aui.AuiToolBar.__init__(self, parent)
         self._parent = parent
 
-        pre = wx.PrePanel()
-        self._ui = load_ui('PanelToolbar.xrc')
+        self._numFreq = masked.NumCtrl(self,
+                                       integerWidth=4,
+                                       fractionWidth=3,
+                                       value=1,
+                                       min=1,
+                                       max=9999,
+                                       limited=True)
+        self._numFreq.SetToolTipString('Centre frequency (MHz)')
+        self.AddControl(self._numFreq)
+        self.AddLabel(wx.ID_ANY, 'MHz',
+                      get_text_size('MHz',
+                                    self._numFreq.GetFont())[0])
 
-        handlerNumCtrl = XrcHandlerNumCtrl()
-        self._ui.AddHandler(handlerNumCtrl)
+        self._choiceGain = wx.Choice(self)
+        self._choiceGain.SetToolTipString('Gain (dB)')
+        self.AddControl(self._choiceGain)
+        self.AddLabel(wx.ID_ANY, 'dB',
+                      get_text_size('dB',
+                                    self._numFreq.GetFont())[0])
 
-        self._ui.LoadOnPanel(pre, parent, 'PanelToolbar')
-        self.PostCreate(pre)
+        self._numCal = masked.NumCtrl(self,
+                                      integerWidth=4,
+                                      fractionWidth=3,
+                                      value=0,
+                                      min=-1000,
+                                      max=1000,
+                                      allowNegative=True,
+                                      limited=True)
+        self._numCal.SetToolTipString('Calibration (ppm)')
+        self.AddControl(self._numCal)
+        self.AddLabel(wx.ID_ANY, 'ppm',
+                      get_text_size('ppm',
+                                    self._numFreq.GetFont())[0])
 
-        self._numFreq = xrc.XRCCTRL(pre, 'ctrlFreq')
-        self._choiceGain = xrc.XRCCTRL(pre, 'choiceGain')
-        self._numCal = xrc.XRCCTRL(pre, 'ctrlCal')
-        self._spinDyn = xrc.XRCCTRL(pre, 'spinDynamic')
-        self._buttonStart = xrc.XRCCTRL(pre, 'buttonStart')
-        self._buttonRec = xrc.XRCCTRL(pre, 'buttonRecord')
-        self._buttonStop = xrc.XRCCTRL(pre, 'buttonStop')
-        self._buttonAdd = xrc.XRCCTRL(pre, 'buttonAdd')
+        self.AddSeparator()
 
-        self._numFreq.SetMin(1)
-        self._numFreq.SetMax(9999)
-        self._numFreq.SetAllowNone(False)
-        self._numFreq.SetLimited(True)
+        self._spinDyn = wx.SpinCtrl(self,
+                                    min=0,
+                                    max=99,
+                                    size=(50, -1))
+        self._spinDyn.SetToolTipString('Dynamic noise level (percentile)')
+        self.AddControl(self._spinDyn)
 
-        self._numCal.SetAllowNegative(True)
-        self._numCal.SetMin(-1000)
-        self._numCal.SetMax(1000)
-        self._numCal.SetAllowNone(False)
-        self._numCal.SetLimited(True)
+        self.AddSeparator()
+
+        self._buttonStart = wx.Button(self, label='Start')
+        self._buttonStart.SetToolTipString('Start monitoring')
+        self.AddControl(self._buttonStart)
+
+        self._buttonRec = wx.ToggleButton(self, label='Record')
+        self._buttonRec.SetToolTipString('Toggle recording')
+        self.AddControl(self._buttonRec)
+
+        self._buttonStop = wx.Button(self, label='Stop')
+        self._buttonStop.SetToolTipString('Stop monitoring')
+        self.AddControl(self._buttonStop)
+
+        self.AddSeparator()
+        self.AddStretchSpacer()
+
+        self._buttonAdd = wx.Button(self, label='+', style=wx.BU_EXACTFIT)
+        self._buttonAdd.SetToolTipString('Add monitor')
+        self.AddControl(self._buttonAdd)
+
+        self.Realize()
 
         self._on_freq = None
         self._on_start = None
@@ -170,7 +207,7 @@ class PanelToolbar(wx.Panel):
         self.SetEvtHandlerEnabled(True)
 
     def get_cal(self):
-        return self._numCal.GetValue()
+        return int(self._numCal.GetValue())
 
     def set_dynamic_percentile(self, percentile):
         self._dynPercentile = percentile
@@ -178,18 +215,6 @@ class PanelToolbar(wx.Panel):
 
     def get_dynamic_percentile(self):
         return self._dynPercentile
-
-
-class XrcHandlerToolbar(xrc.XmlResourceHandler):
-    def CanHandle(self, node):
-        return self.IsOfClass(node, 'PanelToolbar')
-
-    def DoCreateResource(self):
-        panel = PanelToolbar(self.GetParent())
-        self.SetupWindow(panel)
-        self.CreateChildren(panel)
-
-        return panel
 
 
 if __name__ == '__main__':

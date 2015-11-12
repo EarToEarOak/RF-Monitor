@@ -54,7 +54,8 @@ class NavigationToolbar(NavigationToolbar2Wx):
 
         self._textCursor = wx.StaticText(self, style=wx.ALL | wx.ALIGN_RIGHT)
         font = self._textCursor.GetFont()
-        font.MakeSmaller()
+        if wx.__version__ >= '2.9.1':
+            font.MakeSmaller()
         font.SetFamily(wx.FONTFAMILY_TELETYPE)
         self._textCursor.SetFont(font)
         dc = wx.ScreenDC()

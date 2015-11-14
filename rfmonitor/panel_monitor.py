@@ -27,6 +27,7 @@ import time
 
 from wx import xrc
 import wx
+from wx.lib.agw.cubecolourdialog import CubeColourDialog
 
 from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX, LEVEL_DYN_MIN, LEVEL_DYN_MAX
 from rfmonitor.events import post_event, Event, Events
@@ -90,7 +91,7 @@ class PanelMonitor(Monitor, wx.Panel):
             colour = [level * 255 for level in self._colours[i]]
             colourData.SetCustomColour(i, colour)
 
-        dlg = wx.ColourDialog(self, colourData)
+        dlg = CubeColourDialog(self, colourData)
         if dlg.ShowModal() == wx.ID_OK:
             colour = dlg.GetColourData().GetColour()
             colour = [level / 255. for level in colour]

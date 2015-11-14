@@ -138,7 +138,8 @@ class FrameMain(wx.Frame):
         self._toolbar.set_gains(gains)
         self._toolbar.set_gain(self._settings.get_gain())
         self._toolbar.set_cal(self._settings.get_cal())
-        self._toolbar.set_dynamic_percentile(self._settings.get_dynamic_percentile())
+        self._toolbar.set_dynamic_percentile(self._settings.
+                                             get_dynamic_percentile())
 
         self.__on_freq(self._settings.get_freq())
 
@@ -469,7 +470,8 @@ class FrameMain(wx.Frame):
         self._settings.set_freq(self._toolbar.get_freq())
         self._settings.set_gain(self._toolbar.get_gain())
         self._settings.set_cal(self._toolbar.get_cal())
-        self._settings.set_dynamic_percentile(self._toolbar.get_dynamic_percentile())
+        self._settings.set_dynamic_percentile(self._toolbar.
+                                              get_dynamic_percentile())
 
     def __save(self, prompt):
         if prompt or self._filename is None:

@@ -68,7 +68,7 @@ class Cli(wx.EvtHandler):
         except ValueError:
             msg = '\'' + os.path.split(self._filename)[1] + '\' is corrupt.'
             self.__std_err(msg)
-            self.__stop(None, None)
+            self.__stop(None, None, None, None)
             exit(1)
 
         self._dynP = dynP
@@ -76,7 +76,7 @@ class Cli(wx.EvtHandler):
                    if monitor.get_enabled()]
         if not len(enabled):
             self.__std_err('No monitors enabled')
-            self.__stop(None, None)
+            self.__stop(None, None, None, None)
             exit(1)
 
         self.__std_out('Frequency: {}MHz'.format(freq))

@@ -106,8 +106,9 @@ class FrameMain(wx.Frame):
                           CloseButton(False).
                           Gripper().
                           Dock().
-                          TopDockable().
-                          BottomDockable().
+                          Dockable().
+                          LeftDockable(False).
+                          RightDockable(False).
                           Floatable(False).
                           DockFixed())
         self._mgr.Update()
@@ -243,15 +244,13 @@ class FrameMain(wx.Frame):
 
         self._toolbar.enable_freq(False)
 
-        self.Layout()
-
         self.__set_timeline()
         self.__set_spectrum()
         self._isSaved = False
         self.__set_title()
 
-#         scroll = self._panelMonitors.GetScrollRange(wx.VERTICAL)
-#         self._panelMonitors.Scroll(0, scroll)
+        scroll = self._panelMonitors.GetScrollRange(wx.VERTICAL)
+        self._panelMonitors.Scroll(0, scroll)
 
     def __on_del(self, monitor):
         index = self._monitors.index(monitor)
@@ -550,8 +549,6 @@ class FrameMain(wx.Frame):
             panelMonitor.set_periods(monitor.get_periods())
             self.__add_monitor(panelMonitor)
 
-        self.Layout()
-
         self.__set_spectrum()
 
     def __add_monitor(self, monitor):
@@ -568,6 +565,7 @@ class FrameMain(wx.Frame):
 
         self._monitors.append(monitor)
         self._sizerMonitors.Add(monitor, 0, wx.ALL | wx.EXPAND, 5)
+        self.Layout()
 
     def __get_used_colours(self):
         colours = []

@@ -43,7 +43,7 @@ class WidgetMeter(wx.Panel):
 
         font = self.GetFont()
         font.SetFamily(wx.FONTFAMILY_MODERN)
-        font.SetPixelSize((6, 6))
+        font.SetPixelSize((0, 10))
         self.SetFont(font)
 
         self.SetMinSize((250, 25))
@@ -63,6 +63,8 @@ class WidgetMeter(wx.Panel):
         except:
             dc = pdc
 
+        dc.SetFont(self.GetFont())
+
         w, h = self.GetClientSize()
 
         dc.SetPen(wx.Pen(wx.WHITE))
@@ -75,8 +77,9 @@ class WidgetMeter(wx.Panel):
         x = self.__scale_x(self._value, w)
         dc.DrawRectangle(0, 0, x, h)
 
-        dc.SetPen(wx.Pen('#8080FF', 2))
-        dc.SetBrush(wx.Brush('#8080FF'))
+        colour = wx.Colour(0x80, 0x80, 0xFF, 128)
+        dc.SetPen(wx.Pen(colour, 2))
+        dc.SetBrush(wx.Brush(colour))
         x = round(self.__scale_x(self._threshold, w))
         dc.DrawPolygon([(x - THRES_SIZE, 0),
                         (x + THRES_SIZE, 0),
@@ -92,7 +95,9 @@ class WidgetMeter(wx.Panel):
             dc.DrawRectangle(0, TICK_SIZE_MAJ * 3 / 2.,
                              x, h - (TICK_SIZE_MAJ * 3))
 
-        dc.SetPen(wx.GREY_PEN)
+        colour = wx.Colour(0x4d, 0x4d, 0x4d)
+        dc.SetPen(wx.Pen(colour))
+        dc.SetTextForeground(colour)
         ticks = range(LEVEL_MIN, LEVEL_MAX, 10)
         for tick in ticks:
             if tick not in [LEVEL_MIN, LEVEL_MAX]:

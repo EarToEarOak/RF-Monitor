@@ -31,7 +31,7 @@ from rfmonitor.events import Event, Events, post_event
 from rfmonitor.utils_wx import get_text_size
 
 
-class PanelToolbar(aui.AuiToolBar):
+class Toolbar(aui.AuiToolBar):
     def __init__(self, parent):
         aui.AuiToolBar.__init__(self, parent)
         self._parent = parent

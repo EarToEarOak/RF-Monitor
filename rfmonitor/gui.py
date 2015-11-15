@@ -50,7 +50,7 @@ from rfmonitor.push import Push
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
-from rfmonitor.toolbar import PanelToolbar
+from rfmonitor.toolbar import Toolbar
 from rfmonitor.ui import load_ui, load_sound, load_icon
 
 
@@ -90,7 +90,7 @@ class FrameMain(wx.Frame):
         self._panelMonitors = self._ui.LoadObject(self, 'scrolled', 'wxScrolledWindow')
         self._status = self._ui.LoadObject(self, 'statusBar', 'wxStatusBar')
         self._sizerMonitors = self._panelMonitors.GetSizer()
-        self._toolbar = PanelToolbar(self)
+        self._toolbar = Toolbar(self)
 
         self.SetMenuBar(self._menu)
         self.SetStatusBar(self._status)
@@ -98,24 +98,18 @@ class FrameMain(wx.Frame):
         self._mgr = aui.AuiManager(self)
         self._mgr.AddPane(self._panelMonitors, aui.AuiPaneInfo().
                           Centre().
-                          Caption('Monitors').
-                          CloseButton(False))
+                          CentrePane())
         self._mgr.AddPane(self._toolbar, aui.AuiPaneInfo().
                           Bottom().
-                          CaptionVisible(False).
-                          CloseButton(False).
-                          Gripper().
-                          Dock().
-                          Dockable().
-                          LeftDockable(False).
-                          RightDockable(False).
-                          Floatable(False).
-                          DockFixed())
+                          ToolbarPane().
+                          Resizable().
+                          CloseButton(False))
+
         self._mgr.Update()
 
         width = self._toolbar.GetBestSize().GetWidth()
         self.SetSize((width, -1))
-        self.SetMinSize((width, 200))
+        self.SetMinSize((width, 300))
 
         self.__set_icon()
 

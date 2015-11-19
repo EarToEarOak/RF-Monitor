@@ -54,7 +54,7 @@
 		</object>
 		<object class="wxMenu" name="menuTools">
 			<label>Tools</label>
-			<object class="wxMenuItem" name="menuHttp">
+			<object class="wxMenuItem" name="menuPush">
 				<label>Web push...</label>
 				<help></help>
 			</object>

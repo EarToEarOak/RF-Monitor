@@ -102,10 +102,12 @@ class FrameMain(wx.Frame):
         self._mgr.AddPane(self._toolbar, aui.AuiPaneInfo().
                           Bottom().
                           ToolbarPane().
-                          Resizable().
-                          CloseButton(False))
-
+                          LeftDockable(False).
+                          RightDockable(False).
+                          NotebookDockable(False).
+                          MinSize(self._toolbar.GetMinSize()))
         self._mgr.Update()
+        self._mgr.Bind(aui.EVT_AUI_PANE_DOCKED, self.__on_float)
 
         width = self._toolbar.GetBestSize().GetWidth()
         self.SetSize((width, -1))
@@ -186,6 +188,9 @@ class FrameMain(wx.Frame):
         self.Show()
 
         self.__clear_levels()
+
+    def __on_float(self, event):
+        print 'float'
 
     def __on_freq(self, freq):
         _l, freqs = psd(numpy.zeros(2, dtype=numpy.complex64),

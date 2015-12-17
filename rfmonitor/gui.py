@@ -80,6 +80,7 @@ class FrameMain(wx.Frame):
         self._gps = None
         self._location = None
         self._isSaved = True
+        self._warnedPush = False
 
         cmap = cm.get_cmap('Set1')
         self._colours = [cmap(float(i) / COLOURS) for i in range(COLOURS)]
@@ -107,7 +108,6 @@ class FrameMain(wx.Frame):
                           NotebookDockable(False).
                           MinSize(self._toolbar.GetMinSize()))
         self._mgr.Update()
-        self._mgr.Bind(aui.EVT_AUI_PANE_DOCKED, self.__on_float)
 
         width = self._toolbar.GetBestSize().GetWidth()
         self.SetSize((width, -1))
@@ -189,9 +189,6 @@ class FrameMain(wx.Frame):
 
         self.__clear_levels()
 
-    def __on_float(self, event):
-        print 'float'
-
     def __on_freq(self, freq):
         _l, freqs = psd(numpy.zeros(2, dtype=numpy.complex64),
                         BINS, SAMPLE_RATE)
@@ -211,15 +208,26 @@ class FrameMain(wx.Frame):
                                     self._toolbar.get_cal())
 
     def __on_rec(self, recording):
-        if recording:
-            self.__on_start()
-
         timestamp = time.time()
         for monitor in self._monitors:
             if not recording:
                 monitor.set_level(None, timestamp, None)
             monitor.set_recording(recording, timestamp)
 
+        if recording:
+            self.__on_start()
+        else:
+            while self._push.hasFailed():
+                resp = wx.MessageBox('Web push has failed, retry?', 'Warning',
+                                     wx.OK | wx.CANCEL | wx.ICON_WARNING)
+                if resp == wx.OK:
+                    busy = wx.BusyInfo('Pushing...', self)
+                    self._push.send_failed(self._settings.get_push_uri())
+                    del busy
+                else:
+                    self._push.clear_failed()
+
+        self._warnedPush = False
         self.__set_timeline()
 
     def __on_stop(self):
@@ -351,6 +359,7 @@ class FrameMain(wx.Frame):
         if not self.__save_warning():
             return
 
+        self.__on_rec(False)
         self.__on_stop()
 
         if self._server is not None:
@@ -394,10 +403,10 @@ class FrameMain(wx.Frame):
             self.__set_spectrum()
             self.__set_title()
         elif event.type == Events.PUSH_ERROR:
-            if self._settings.get_push_enable():
-                self._settings.set_push_enable(False)
-                wx.MessageBox('Push disabled:\n\t' + event.data['msg'],
-                              'Push error', wx.OK | wx.ICON_ERROR)
+            if not self._warnedPush:
+                self._warnedPush = True
+                wx.MessageBox('Error:\n\t' + event.data['msg'],
+                              'Push failed', wx.OK | wx.ICON_ERROR)
 
     def __on_scan_error(self, event):
         wx.MessageBox(event['msg'],
@@ -528,6 +537,7 @@ class FrameMain(wx.Frame):
         self.__set_timeline()
         self.__set_spectrum()
         self._isSaved = True
+        self._warnedPush = False
 
     def __enable_controls(self, enable):
         self._menuOpen.Enable(enable)

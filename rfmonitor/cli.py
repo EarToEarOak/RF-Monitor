@@ -41,6 +41,7 @@ from rfmonitor.gps import GpsDevice, Gps
 from rfmonitor.push import Push
 from rfmonitor.receive import Receive
 from rfmonitor.server import Server
+from rfmonitor.utils_cli import getch
 
 
 class Cli(wx.EvtHandler):
@@ -57,6 +58,7 @@ class Cli(wx.EvtHandler):
         self._gpsBaud = args.baud
         self._json = args.json
         self._pushUri = args.web
+        self._warnedPush = False
 
         self._receive = None
         self._cancel = False
@@ -193,6 +195,17 @@ class Cli(wx.EvtHandler):
             self.__std_out('Saving..')
             self.__save(freq, gain, cal, dynP)
 
+        while self._push.hasFailed():
+            self.__std_out('Web push has failed, retry (Y/n)?')
+            resp = ''
+            while resp not in ['y', 'n', '\r', '\n']:
+                resp = getch()
+            if resp in ['y', '\r', '\n']:
+                self.__std_out('Pushing...')
+                self._push.send_failed(self._pushUri)
+            else:
+                self._push.clear_failed()
+
         self.__std_out('Finished')
 
     def __std_out(self, message, lf=True):
@@ -228,9 +241,9 @@ class Cli(wx.EvtHandler):
         elif event.type == Events.GPS_LOC:
             self._location = event.data['loc']
         elif event.type == Events.PUSH_ERROR:
-            if self._pushUri is not None:
-                self._pushUri = None
-                self.__std_err('Push disabled:\n\t' + event.data['msg'])
+            if not self._warnedPush:
+                self._warnedPush = True
+                self.__std_err('Push failed:\n\t' + event.data['msg'])
         else:
             time.sleep(0.01)
 

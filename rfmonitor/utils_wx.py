@@ -32,6 +32,10 @@ def get_text_size(text, font):
     return dc.GetTextExtent(text)
 
 
+def limit_to_ctrl_range(numctrl, value):
+    return max(min(numctrl.GetMax(), value), numctrl.GetMin())
+
+
 if __name__ == '__main__':
     print 'Please run rfmonitor.py'
     exit(1)

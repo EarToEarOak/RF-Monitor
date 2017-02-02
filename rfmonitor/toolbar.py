@@ -28,7 +28,7 @@ from wx.lib import masked
 from wx.lib.agw import aui
 
 from rfmonitor.events import Event, Events, post_event
-from rfmonitor.utils_wx import get_text_size
+from rfmonitor.utils_wx import get_text_size, limit_to_ctrl_range
 
 
 class Toolbar(aui.AuiToolBar):
@@ -176,6 +176,7 @@ class Toolbar(aui.AuiToolBar):
 
     def set_freq(self, freq):
         self.SetEvtHandlerEnabled(False)
+        freq = limit_to_ctrl_range(self._numFreq, freq)
         self._numFreq.SetValue(freq)
         self.SetEvtHandlerEnabled(True)
 
@@ -203,6 +204,7 @@ class Toolbar(aui.AuiToolBar):
 
     def set_cal(self, cal):
         self.SetEvtHandlerEnabled(False)
+        cal = limit_to_ctrl_range(self._numCal, cal)
         self._numCal.SetValue(cal)
         self.SetEvtHandlerEnabled(True)
 
@@ -210,6 +212,7 @@ class Toolbar(aui.AuiToolBar):
         return int(self._numCal.GetValue())
 
     def set_dynamic_percentile(self, percentile):
+        percentile = limit_to_ctrl_range(self._spinDyn, percentile)
         self._dynPercentile = percentile
         self._spinDyn.SetValue(percentile)
 

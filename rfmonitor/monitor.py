@@ -153,7 +153,8 @@ class Monitor(object):
         self._periods.append(period)
 
     def end_period(self, timestamp):
-        self._periods[-1].end = timestamp
+        if len(self._periods):
+            self._periods[-1].end = timestamp
 
     def clear(self):
         self._signals = []

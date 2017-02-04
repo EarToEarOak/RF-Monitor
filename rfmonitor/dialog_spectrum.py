@@ -36,7 +36,7 @@ import wx.lib.newevent
 from rfmonitor.constants import MAX_SPECTRUM_FPS
 from rfmonitor.legend import Legend
 from rfmonitor.navigation_toolbar import NavigationToolbar
-from rfmonitor.ui import load_ui
+from rfmonitor.utils_ui import load_ui
 
 EventSpectrumClose, EVT_SPECTRUM_CLOSE = wx.lib.newevent.NewEvent()
 

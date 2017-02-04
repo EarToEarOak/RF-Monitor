@@ -29,7 +29,7 @@ import sys
 from wx import xrc
 import wx
 
-from rfmonitor.ui import load_ui, load_bitmap
+from rfmonitor.utils_ui import load_ui, load_bitmap
 
 
 class DialogAbout(wx.Dialog):

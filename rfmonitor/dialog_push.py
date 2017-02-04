@@ -26,7 +26,7 @@
 from wx import xrc
 import wx
 
-from rfmonitor.ui import load_ui
+from rfmonitor.utils_ui import load_ui
 
 
 class DialogPush(wx.Dialog):

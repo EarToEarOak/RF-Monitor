@@ -51,7 +51,7 @@ from rfmonitor.receive import Receive
 from rfmonitor.server import Server
 from rfmonitor.settings import Settings
 from rfmonitor.toolbar import Toolbar
-from rfmonitor.ui import load_ui, load_sound, load_icon
+from rfmonitor.utils_ui import load_ui, load_sound, load_icon
 from rfmonitor.widget_meter import WidgetMeter
 
 

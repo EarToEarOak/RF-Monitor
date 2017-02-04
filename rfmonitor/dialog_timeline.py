@@ -40,7 +40,7 @@ import wx.lib.newevent
 from rfmonitor.constants import BINS, SAMPLE_RATE, MAX_TIMELINE_FPS, TIMELINE_FPS
 from rfmonitor.legend import Legend
 from rfmonitor.navigation_toolbar import NavigationToolbar
-from rfmonitor.ui import load_ui
+from rfmonitor.utils_ui import load_ui
 
 
 EventTimelineClose, EVT_TIMELINE_CLOSE = wx.lib.newevent.NewEvent()

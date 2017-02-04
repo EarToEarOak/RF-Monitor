@@ -33,7 +33,7 @@ from rfmonitor.constants import LEVEL_MIN, LEVEL_MAX, LEVEL_DYN_MIN, \
     LEVEL_DYN_MAX
 from rfmonitor.events import post_event, Event, Events
 from rfmonitor.monitor import Monitor
-from rfmonitor.ui import load_ui
+from rfmonitor.utils_ui import load_ui
 from rfmonitor.widget_meter import XrcHandlerMeter, WidgetMeter
 from rfmonitor.xrchandlers import XrcHandlerNumCtrl
 

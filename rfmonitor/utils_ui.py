@@ -26,33 +26,28 @@
 import os
 import sys
 
+import pkg_resources
 from wx import xrc
 import wx
 
 
-def __get_ui_dir():
-    if getattr(sys, 'frozen', False):
-        resDir = os.path.join(sys._MEIPASS, 'ui')
+def get_resource(resource):
+    if not hasattr(sys, 'frozen'):
+        return pkg_resources.resource_filename('rfmonitor.ui', resource)
     else:
-        scriptDir = os.path.dirname(os.path.realpath(sys.argv[0]))
-        resDir = os.path.join(scriptDir, 'rfmonitor', 'ui')
-
-    return resDir
+        return os.path.join(sys._MEIPASS, 'ui', resource)
 
 
-def load_ui(filename):
-    path = os.path.join(__get_ui_dir(), filename)
-    return xrc.XmlResource(path)
+def load_ui(resource):
+    return xrc.XmlResource(get_resource(resource))
 
 
-def load_sound(filename):
-    path = os.path.join(__get_ui_dir(), filename)
-    return wx.Sound(path)
+def load_sound(resource):
+    return wx.Sound(get_resource(resource))
 
 
-def load_bitmap(filename, size=None):
-    path = os.path.join(__get_ui_dir(), filename)
-    bitmap = wx.Bitmap(path, wx.BITMAP_TYPE_PNG)
+def load_bitmap(resource, size=None):
+    bitmap = wx.Bitmap(get_resource(resource), wx.BITMAP_TYPE_PNG)
     if size is not None:
         image = wx.ImageFromBitmap(bitmap)
         image.Rescale(size.GetWidth(), size.GetHeight(),

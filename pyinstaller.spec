@@ -25,26 +25,42 @@
 
 import platform
 
-from git import Repo
-from git.exc import GitCommandError
 from PyInstaller.utils.win32 import versioninfo
 from PyInstaller import compat
 import sys
 
 
 def create_version():
-    repo = Repo()
-    if repo.is_dirty():
-        sys.stderr.write('Repo is dirty, exiting')
-        exit(1)
+    search = os.path.join(os.getcwd(), 'rfmonitor')
+    sys.path.append(search)
+    from version import VERSION
+    version = VERSION
+    version.append(0)
 
-    try:
-        version = repo.git.describe()
-    except GitCommandError:
-        version = repo.rev_parse(rev='HEAD')
-        version = repo.git.rev_parse(version, short=4)
+    ffi = versioninfo.FixedFileInfo(filevers=VERSION,
+                                    prodvers=VERSION)
 
-    return version
+    strings = []
+    strings.append(versioninfo.StringStruct('ProductName',
+                                            'RF Monitor'))
+    strings.append(versioninfo.StringStruct('FileDescription',
+                                            'Spectrum Analyser'))
+    strings.append(versioninfo.StringStruct('LegalCopyright',
+                                            'Copyright 2012 - 2017 Al Brown'))
+    table = versioninfo.StringTable('040904B0', strings)
+    sInfo = versioninfo.StringFileInfo([table])
+    var = versioninfo.VarStruct('Translation', [2057, 1200])
+    vInfo = versioninfo.VarFileInfo([var])
+    vvi = versioninfo.VSVersionInfo(ffi, [sInfo, vInfo])
+
+    f = open('version.txt', 'w')
+    f.write(vvi.__unicode__())
+    f.close()
+
+    print 'Version: {}.{}.{}.{}'.format (vvi.ffi.fileVersionMS >> 16,
+                                         vvi.ffi.fileVersionMS & 0xffff,
+                                         vvi.ffi.fileVersionLS >> 16,
+                                         vvi.ffi.fileVersionLS & 0xFFFF)
 
 
 def build(version):

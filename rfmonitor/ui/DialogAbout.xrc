@@ -40,8 +40,17 @@
                         <option>0</option>
                         <flag>wxALIGN_CENTER|wxALL</flag>
                         <border>5</border>
+                        <object class="wxStaticText" name="textVersion">
+                            <label></label>
+                            <wrap>-1</wrap>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <option>0</option>
+                        <flag>wxALIGN_CENTER|wxALL</flag>
+                        <border>5</border>
                         <object class="wxStaticText" name="text2">
-                            <label>Copyright 2015 Al Brown</label>
+                            <label>Copyright 2015 - 2017 Al Brown</label>
                             <wrap>-1</wrap>
                         </object>
                     </object>

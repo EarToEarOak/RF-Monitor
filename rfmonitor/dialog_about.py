@@ -30,6 +30,7 @@ from wx import xrc
 import wx
 
 from rfmonitor.utils_ui import load_ui, load_bitmap
+from rfmonitor.version import VERSION
 
 
 class DialogAbout(wx.Dialog):
@@ -42,6 +43,9 @@ class DialogAbout(wx.Dialog):
         bitmap = xrc.XRCCTRL(pre, 'bitmap')
         image = load_bitmap('logo.png', bitmap.GetClientSize())
         bitmap.SetBitmap(image)
+
+        version = xrc.XRCCTRL(pre, 'textVersion')
+        version.SetLabel('v' + '.'.join([str(x) for x in VERSION]))
 
         self._buttonOk = xrc.XRCCTRL(pre, 'buttonOk')
         self.Bind(wx.EVT_BUTTON, self.__on_ok, self._buttonOk)

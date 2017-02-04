@@ -76,6 +76,7 @@ if __name__ == '__main__':
         import wx
         from rfmonitor.gui import RfMonitor, FrameMain
 
+        os.environ['UBUNTU_MENUPROXY'] = '0'
         app = RfMonitor()
         app.SetClassName(APP_NAME)
         wx.Locale().Init2()

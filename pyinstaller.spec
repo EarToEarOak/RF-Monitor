@@ -23,11 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
 import platform
-
-from PyInstaller.utils.win32 import versioninfo
-from PyInstaller import compat
 import sys
+
+from PyInstaller import compat
+from PyInstaller.utils.win32 import versioninfo
 
 
 def create_version():
@@ -44,9 +45,9 @@ def create_version():
     strings.append(versioninfo.StringStruct('ProductName',
                                             'RF Monitor'))
     strings.append(versioninfo.StringStruct('FileDescription',
-                                            'Spectrum Analyser'))
+                                            'RF signal monitor'))
     strings.append(versioninfo.StringStruct('LegalCopyright',
-                                            'Copyright 2012 - 2017 Al Brown'))
+                                            'Copyright 2015 - 2017 Al Brown'))
     table = versioninfo.StringTable('040904B0', strings)
     sInfo = versioninfo.StringFileInfo([table])
     var = versioninfo.VarStruct('Translation', [2057, 1200])
@@ -63,13 +64,13 @@ def create_version():
                                          vvi.ffi.fileVersionLS & 0xFFFF)
 
 
-def build(version):
+def build(version=None):
     system = platform.system().lower()
     architecture, _null = platform.architecture()
-    filename = 'rfmonitor-' + version + '-' + system + '-' + architecture.lower()
+    filename = 'rfmonitor-' + system + '-' + architecture.lower()
 
     excludes = ['pyside', 'qt', 'scipy']
-    a = Analysis(['rfmonitor.py'],
+    a = Analysis(['rf_monitor.py'],
                 excludes=excludes)
 
     a.datas += Tree('rfmonitor/ui', prefix='ui')
@@ -83,8 +84,14 @@ def build(version):
               a.datas,
               name=os.path.join('dist', filename),
               icon='logo.ico',
+              version=version,
               upx=True)
 
 
-version = create_version()
-build(version)
+system = platform.system().lower()
+if system == 'windows':
+    create_version()
+    build('version.txt')
+    os.remove('version.txt')
+else:
+    build()

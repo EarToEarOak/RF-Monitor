@@ -30,7 +30,7 @@ from rfmonitor.version import VERSION
 
 setup(name='rf-monitor',
       version='.'.join([str(x) for x in VERSION]),
-      description='RF signal monitor.',
+      description='RF signal monitor',
       classifiers=['Development Status :: 4 - Beta',
                    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
                    'Operating System :: MacOS :: MacOS X',

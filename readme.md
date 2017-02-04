@@ -17,9 +17,13 @@ RF signal monitor for recording the time and location of signals which exceed a 
 - [pyrtlsdr](https://github.com/roger-/pyrtlsdr)
 - [pyserial](https://pypi.python.org/pypi/pyserial)
 
+##Installation##
+
+`pip install rf-monitor`
+
 ##Usage##
 
-`python rfmonitor.py [file]`
+`rf_monitor.py [file]`
 
 **Main Window**
 
@@ -96,8 +100,7 @@ A TCP server is available on port 15622 which outputs JSON describing the record
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation, or (at your option)
-any later version.
+the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of

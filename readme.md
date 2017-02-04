@@ -11,11 +11,7 @@ RF signal monitor for recording the time and location of signals which exceed a 
 
 - [Python 2.7](http://www.python.org) or greater
 - [wxPython](http://www.wxpython.org/)
-- [matplotlib](http://matplotlib.org/)
-- [numpy](http://www.numpy.org/) 
-- [rtlsdr](http://sdr.osmocom.org/trac/wiki/rtl-sdr)
-- [pyrtlsdr](https://github.com/roger-/pyrtlsdr)
-- [pyserial](https://pypi.python.org/pypi/pyserial)
+
 
 ##Installation##
 

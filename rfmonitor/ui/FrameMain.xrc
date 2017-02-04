@@ -2,7 +2,7 @@
 <resource xmlns="http://www.wxwindows.org/wxxrc" version="2.3.0.1">
 	<object class="wxStatusBar" name="statusBar">
 		<style>wxST_SIZEGRIP</style>
-		<fields>2</fields>
+		<fields>3</fields>
 	</object>
 
 	<object class="wxMenuBar" name="menuBar">
@@ -41,6 +41,12 @@
 		</object>
 		<object class="wxMenu" name="menuView">
 			<label>View</label>
+			<object class="wxMenuItem" name="menuRssi">
+                <label>Signal Strength</label>
+                <help>Display the signal strength indicator</help>
+                <checkable>1</checkable>
+            </object>
+            <object class="separator" />
 			<object class="wxMenuItem" name="menuSpectrum">
 				<label>Spectrum</label>
 				<help>Display the spectrum</help>

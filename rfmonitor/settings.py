@@ -39,6 +39,7 @@ class Settings(object):
         self._pushEnable = True
         self._pushUri = 'http://localhost/rfmonitor'
         self._dynPercentile = 33
+        self._showRssi = True
 
         self.__load()
 
@@ -48,6 +49,7 @@ class Settings(object):
         self._gain = self._config.ReadFloat('gain', self._gain)
         self._cal = self._config.ReadInt('calibration', self._cal)
         self._dynPercentile = self._config.ReadInt('dynPercentile', self._dynPercentile)
+        self._showRssi = self._config.ReadBool('showRssi', self._showRssi)
 
         self._config.SetPath('/Gps')
         self._gps.enabled = self._config.ReadBool('enabled', self._gps.enabled)
@@ -80,6 +82,9 @@ class Settings(object):
     def set_dynamic_percentile(self, percentile):
         self._dynPercentile = percentile
 
+    def set_show_rssi(self, show):
+        self._showRssi = show
+
     def get_freq(self):
         return self._freq
 
@@ -101,12 +106,16 @@ class Settings(object):
     def get_dynamic_percentile(self):
         return self._dynPercentile
 
+    def get_show_rssi(self):
+        return self._showRssi
+
     def save(self):
         self._config.SetPath('/')
         self._config.WriteFloat('frequency', self._freq)
         self._config.WriteFloat('gain', self._gain)
         self._config.WriteInt('calibration', self._cal)
         self._config.WriteInt('dynPercentile', self._dynPercentile)
+        self._config.WriteBool('showRssi', self._showRssi)
 
         self._config.SetPath('/Gps')
         self._config.WriteBool('enabled', self._gps.enabled)

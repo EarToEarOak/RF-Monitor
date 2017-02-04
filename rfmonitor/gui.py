@@ -26,6 +26,7 @@
 import os
 import sys
 import time
+from wx.lib.agw import aui
 
 from matplotlib import cm
 from matplotlib.mlab import psd
@@ -33,7 +34,6 @@ import numpy
 from rtlsdr.rtlsdr import RtlSdr
 from wx import xrc
 import wx
-from wx.lib.agw import aui
 
 from rfmonitor.constants import BINS, SAMPLE_RATE, LEVEL_MIN, APP_NAME, \
     GPS_RETRY, ALERT_LENGTH
@@ -52,6 +52,7 @@ from rfmonitor.server import Server
 from rfmonitor.settings import Settings
 from rfmonitor.toolbar import Toolbar
 from rfmonitor.ui import load_ui, load_sound, load_icon
+from rfmonitor.widget_meter import WidgetMeter
 
 
 COLOURS = 16
@@ -90,6 +91,11 @@ class FrameMain(wx.Frame):
         self._menu = self._ui.LoadMenuBar('menuBar')
         self._panelMonitors = self._ui.LoadObject(self, 'scrolled', 'wxScrolledWindow')
         self._status = self._ui.LoadObject(self, 'statusBar', 'wxStatusBar')
+        self._status.SetMinHeight(25)
+        self._rssi = WidgetMeter(self._status)
+        self._rssi.SetToolTipString('Max and mean signal strength (dB)')
+        self._rssi.Show(self._settings.get_show_rssi())
+
         self._sizerMonitors = self._panelMonitors.GetSizer()
         self._toolbar = Toolbar(self)
 
@@ -158,6 +164,10 @@ class FrameMain(wx.Frame):
         idGps = xrc.XRCID('menuGps')
         self._menuGps = self._menu.FindItemById(idGps)
         self.Bind(wx.EVT_MENU, self.__on_gps, id=idGps)
+        idRssi = xrc.XRCID('menuRssi')
+        self.Bind(wx.EVT_MENU, self.__on_rssi, id=idRssi)
+        self._menuRssi = self._menu.FindItemById(idRssi)
+        self._menuRssi.Check(self._settings.get_show_rssi())
         idTimeline = xrc.XRCID('menuTimeline')
         self.Bind(wx.EVT_MENU, self.__on_timeline, id=idTimeline)
         self._menuTimeline = self._menu.FindItemById(idTimeline)
@@ -177,6 +187,8 @@ class FrameMain(wx.Frame):
 
         self.__set_title()
         self.__enable_controls(True)
+
+        self._status.Bind(wx.EVT_SIZE, self.__on_size)
 
         self.Bind(EVT_TIMELINE_CLOSE, self.__on_timeline_close)
         self.Bind(EVT_SPECTRUM_CLOSE, self.__on_spectrum_close)
@@ -231,6 +243,7 @@ class FrameMain(wx.Frame):
         self.__set_timeline()
 
     def __on_stop(self):
+        self.__clear_rssi()
         self.__enable_controls(True)
         if self._receive is not None:
             self._receive.stop()
@@ -320,6 +333,11 @@ class FrameMain(wx.Frame):
             self.__stop_gps()
             self.__start_gps()
 
+    def __on_rssi(self, event):
+        checked = event.IsChecked()
+        self._rssi.Show(checked)
+        self._settings.set_show_rssi(checked)
+
     def __on_timeline(self, event):
         if event.IsChecked() and self._dialogTimeline is None:
             self._dialogTimeline = DialogTimeline(self)
@@ -354,6 +372,11 @@ class FrameMain(wx.Frame):
     def __on_about(self, _event):
         dlg = DialogAbout(self)
         dlg.ShowModal()
+
+    def __on_size(self, _event):
+        rect = self._status.GetFieldRect(2)
+        self._rssi.SetPosition((rect.x, rect.y))
+        self._rssi.SetSize((rect.width, rect.height))
 
     def __on_exit(self, _event):
         if not self.__save_warning():
@@ -409,6 +432,7 @@ class FrameMain(wx.Frame):
                               'Push failed', wx.OK | wx.ICON_ERROR)
 
     def __on_scan_error(self, event):
+        self.__clear_rssi()
         wx.MessageBox(event['msg'],
                       'Error', wx.OK | wx.ICON_ERROR)
         self._toolbar.enable_start(True)
@@ -447,6 +471,8 @@ class FrameMain(wx.Frame):
                 self.__set_timeline()
 
         self.__set_spectrum(noise)
+        self._rssi.set_noise(numpy.mean(levels))
+        self._rssi.set_level(numpy.max(levels))
 
     def __on_server_error(self, event):
         sys.stderr.write(event['msg'])
@@ -621,6 +647,10 @@ class FrameMain(wx.Frame):
     def __clear_levels(self):
         self._levels.fill(numpy.NaN)
         self.__set_spectrum()
+
+    def __clear_rssi(self):
+        self._rssi.set_noise(LEVEL_MIN)
+        self._rssi.set_level(LEVEL_MIN)
 
     def __start_gps(self):
         if self._gps is None and self._settings.get_gps().enabled:

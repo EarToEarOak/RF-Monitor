@@ -1,4 +1,4 @@
-#RF Monitor#
+# RF Monitor #
 
 Copyright 2015 Al Brown
 
@@ -7,17 +7,17 @@ al [at] eartoearoak.com
 RF signal monitor for recording the time and location of signals which exceed a threshold. For use with a RTLSDR dongle.
 
 
-##Requirements##
+## Requirements ##
 
 - [Python 2.7](http://www.python.org) or greater
 - [wxPython](http://www.wxpython.org/)
 
 
-##Installation##
+## Installation ##
 
 `pip install rf-monitor`
 
-##Usage##
+## Usage ##
 
 `rf_monitor.py [file]`
 
@@ -92,7 +92,7 @@ A TCP server is available on port 15622 which outputs JSON describing the record
 
 `{"Frequency": 89000000, "Signal": {"Start": 1447075856.359, "End": 1447075856.632, "Level": -24.174076948140357}}`
 
-##License##
+## License ##
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
